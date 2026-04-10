@@ -32,6 +32,7 @@ export default function OrdersPage() {
   const [editOrder, setEditOrder] = useState<Order | null>(null);
   const [editItems, setEditItems] = useState<CartItem[]>([]);
   const [menuSearch, setMenuSearch] = useState('');
+  const [editDeliveryCharges, setEditDeliveryCharges] = useState(0);
 
   const today = new Date();
   today.setHours(0, 0, 0, 0);
@@ -100,6 +101,7 @@ export default function OrdersPage() {
   const handleEditOpen = (order: Order) => {
     setEditOrder(order);
     setEditItems(order.items.map(i => ({ ...i })));
+    setEditDeliveryCharges(order.deliveryCharges || 0);
     setMenuSearch('');
   };
 
@@ -124,8 +126,10 @@ export default function OrdersPage() {
   const handleEditSave = () => {
     if (!editOrder || editItems.length === 0) return;
     const subtotal = editItems.reduce((s, i) => s + i.price * i.quantity, 0);
-    const total = subtotal; // simplified - discount not recalculated
-    updateOrder(editOrder.id, { items: editItems, subtotal, total });
+    const discount = editOrder.discount || 0;
+    const discountAmt = editOrder.discountType === 'percent' ? Math.round(subtotal * discount / 100) : discount;
+    const total = subtotal - discountAmt + editDeliveryCharges;
+    updateOrder(editOrder.id, { items: editItems, subtotal, total, deliveryCharges: editDeliveryCharges });
     toast({ title: 'Order updated!', description: `${editOrder.id} saved` });
     setEditOrder(null);
   };

@@ -10,12 +10,11 @@ const types: { value: Order['orderType']; label: string }[] = [
   { value: 'takeout', label: 'Take Out' },
   { value: 'delivery', label: 'Delivery' },
   { value: 'car', label: 'Car Order' },
-  { value: 'self', label: 'Self Service' },
 ];
 
 export function OrderTypeSelector({ value, onChange }: OrderTypeSelectorProps) {
   return (
-    <div className="grid grid-cols-5 gap-1">
+    <div className="grid grid-cols-4 gap-1">
       {types.map(t => (
         <button
           key={t.value}

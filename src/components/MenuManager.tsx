@@ -127,25 +127,33 @@ export function MenuManager({ items, categories, onAddItem, onUpdateItem, onDele
             {/* Items list */}
             <div className="space-y-1 flex-1 overflow-y-auto">
               {filteredItems.map(item => (
-                <div key={item.id} className="flex items-center gap-2 text-sm py-1.5 border-b border-border">
+                <div key={item.id} className="py-1.5 border-b border-border">
                   {editId === item.id ? (
-                    <>
-                      <Input value={editName} onChange={e => setEditName(e.target.value)} className="flex-1 h-7 text-xs" />
-                      <Input value={editPrice} onChange={e => setEditPrice(e.target.value)} type="number" className="w-20 h-7 text-xs" />
-                      <select value={editCategory} onChange={e => setEditCategory(e.target.value)} className="bg-accent text-accent-foreground rounded px-1.5 text-xs border border-border h-7">
-                        {categories.filter(c => c !== 'All').map(c => <option key={c} value={c}>{c}</option>)}
-                      </select>
-                      <button onClick={saveEdit} className="text-primary"><Save className="h-3.5 w-3.5" /></button>
-                      <button onClick={cancelEdit} className="text-muted-foreground"><X className="h-3.5 w-3.5" /></button>
-                    </>
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2">
+                        <Input value={editName} onChange={e => setEditName(e.target.value)} className="flex-1 h-7 text-xs" />
+                        <Input value={editPrice} onChange={e => setEditPrice(e.target.value)} type="number" className="w-20 h-7 text-xs" />
+                        <select value={editCategory} onChange={e => setEditCategory(e.target.value)} className="bg-accent text-accent-foreground rounded px-1.5 text-xs border border-border h-7">
+                          {categories.filter(c => c !== 'All').map(c => <option key={c} value={c}>{c}</option>)}
+                        </select>
+                        <button onClick={saveEdit} className="text-primary"><Save className="h-3.5 w-3.5" /></button>
+                        <button onClick={cancelEdit} className="text-muted-foreground"><X className="h-3.5 w-3.5" /></button>
+                      </div>
+                      <div className="flex gap-1 items-center">
+                        <Image className="h-3 w-3 text-muted-foreground" />
+                        <Input value={editImage} onChange={e => setEditImage(e.target.value)} placeholder="Image URL (optional)" className="flex-1 h-6 text-[10px]" />
+                        {editImage && <img src={editImage} alt="" className="w-6 h-6 rounded object-cover" />}
+                      </div>
+                    </div>
                   ) : (
-                    <>
+                    <div className="flex items-center gap-2 text-sm">
+                      {item.image && <img src={item.image} alt="" className="w-6 h-6 rounded object-cover" />}
                       <span className="flex-1 text-xs">{item.name}</span>
                       <span className="text-muted-foreground text-[10px]">{item.category}</span>
                       <span className="font-bold text-xs">Rs.{item.price}</span>
                       <button onClick={() => startEdit(item)} className="text-primary"><Edit2 className="h-3.5 w-3.5" /></button>
                       <button onClick={() => onDeleteItem(item.id)} className="text-destructive"><Trash2 className="h-3.5 w-3.5" /></button>
-                    </>
+                    </div>
                   )}
                 </div>
               ))}

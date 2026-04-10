@@ -309,7 +309,7 @@ const Index = () => {
               </div>
             )}
 
-            {['delivery', 'takeout', 'car'].includes(orderType) && (
+            {['delivery', 'takeout', 'car', 'self'].includes(orderType) && (
               <div className="space-y-1">
                 <Input placeholder="Customer Name" value={customerName} onChange={e => setCustomerName(e.target.value)} className="h-7 text-xs" />
                 <div className="relative" ref={phoneInputRef}>

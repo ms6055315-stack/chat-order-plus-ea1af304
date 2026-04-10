@@ -19,7 +19,7 @@ import { AIAgentPanel, AIAgentButton } from '@/components/AIAgentPanel';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
-import { Phone, BarChart3, ClipboardList, Sun, Moon, Plus, X, Clock, User } from 'lucide-react';
+import { Phone, BarChart3, ClipboardList, Sun, Moon, Plus, X, Clock, MessageSquare, Settings } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 
 const Index = () => {
@@ -234,11 +234,11 @@ const Index = () => {
           <Button variant="outline" size="sm" onClick={() => navigate('/orders')} className="gap-1 h-8 text-xs">
             <ClipboardList className="h-3.5 w-3.5" /> Orders
           </Button>
-          <Button variant="outline" size="sm" onClick={() => navigate('/self-service')} className="gap-1 h-8 text-xs">
-            <User className="h-3.5 w-3.5" /> Self Service
-          </Button>
           <Button variant="outline" size="sm" onClick={() => navigate('/reports')} className="gap-1 h-8 text-xs">
             <BarChart3 className="h-3.5 w-3.5" /> Reports
+          </Button>
+          <Button variant="outline" size="sm" onClick={() => navigate('/whatsapp-settings')} className="gap-1 h-8 text-xs">
+            <MessageSquare className="h-3.5 w-3.5" /> WA
           </Button>
 
           {!isDayOpen ? (
@@ -309,7 +309,7 @@ const Index = () => {
               </div>
             )}
 
-            {['delivery', 'takeout', 'car'].includes(orderType) && (
+            {['delivery', 'takeout', 'car', 'self'].includes(orderType) && (
               <div className="space-y-1">
                 <Input placeholder="Customer Name" value={customerName} onChange={e => setCustomerName(e.target.value)} className="h-7 text-xs" />
                 <div className="relative" ref={phoneInputRef}>

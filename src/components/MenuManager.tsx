@@ -86,13 +86,19 @@ export function MenuManager({ items, categories, onAddItem, onUpdateItem, onDele
           </DialogHeader>
           <div className="space-y-3 flex-1 overflow-hidden flex flex-col">
             {/* Add new item */}
-            <div className="flex gap-2 flex-wrap">
-              <Input value={name} onChange={e => setName(e.target.value)} placeholder="Item name" className="flex-1 h-8 text-xs min-w-[120px]" />
-              <Input value={price} onChange={e => setPrice(e.target.value)} placeholder="Price" type="number" className="w-20 h-8 text-xs" />
-              <select value={category} onChange={e => setCategory(e.target.value)} className="bg-accent text-accent-foreground rounded px-2 text-xs border border-border h-8">
-                {categories.filter(c => c !== 'All').map(c => <option key={c} value={c}>{c}</option>)}
-              </select>
-              <Button onClick={handleAdd} size="sm" className="h-8 text-xs gap-1"><Plus className="h-3 w-3" /> Add</Button>
+            <div className="space-y-1">
+              <div className="flex gap-2 flex-wrap">
+                <Input value={name} onChange={e => setName(e.target.value)} placeholder="Item name" className="flex-1 h-8 text-xs min-w-[120px]" />
+                <Input value={price} onChange={e => setPrice(e.target.value)} placeholder="Price" type="number" className="w-20 h-8 text-xs" />
+                <select value={category} onChange={e => setCategory(e.target.value)} className="bg-accent text-accent-foreground rounded px-2 text-xs border border-border h-8">
+                  {categories.filter(c => c !== 'All').map(c => <option key={c} value={c}>{c}</option>)}
+                </select>
+                <Button onClick={handleAdd} size="sm" className="h-8 text-xs gap-1"><Plus className="h-3 w-3" /> Add</Button>
+              </div>
+              <div className="flex gap-2">
+                <Image className="h-4 w-4 text-muted-foreground mt-1.5" />
+                <Input value={image} onChange={e => setImage(e.target.value)} placeholder="Image URL (PNG/JPG) - optional" className="flex-1 h-8 text-xs" />
+              </div>
             </div>
 
             {/* Add category */}

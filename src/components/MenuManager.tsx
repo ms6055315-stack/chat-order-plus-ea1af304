@@ -3,7 +3,7 @@ import { MenuItem, CATEGORIES } from '@/lib/menu';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
-import { Settings, Plus, Trash2, RotateCcw, Edit2, Save, X, FolderPlus } from 'lucide-react';
+import { Settings, Plus, Trash2, RotateCcw, Edit2, Save, X, FolderPlus, Image } from 'lucide-react';
 
 interface MenuManagerProps {
   items: MenuItem[];
@@ -20,6 +20,7 @@ export function MenuManager({ items, categories, onAddItem, onUpdateItem, onDele
   const [name, setName] = useState('');
   const [price, setPrice] = useState('');
   const [category, setCategory] = useState(categories[1] || '');
+  const [image, setImage] = useState('');
   const [search, setSearch] = useState('');
   const [filterCat, setFilterCat] = useState('All');
 
@@ -28,6 +29,7 @@ export function MenuManager({ items, categories, onAddItem, onUpdateItem, onDele
   const [editName, setEditName] = useState('');
   const [editPrice, setEditPrice] = useState('');
   const [editCategory, setEditCategory] = useState('');
+  const [editImage, setEditImage] = useState('');
 
   // Add category state
   const [showAddCat, setShowAddCat] = useState(false);

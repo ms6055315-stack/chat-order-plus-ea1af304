@@ -4,6 +4,7 @@ import { MenuGrid } from '@/components/MenuGrid';
 import { useMenuItems } from '@/hooks/useMenuItems';
 import { useCart } from '@/hooks/useCart';
 import { PrintBill } from '@/components/PrintBill';
+import { PrintToken } from '@/components/PrintToken';
 import { Order } from '@/lib/menu';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -221,6 +222,7 @@ export default function SelfServicePage() {
                         </Button>
                       )}
                       <PrintBill order={order} />
+                      <PrintToken order={order} />
                     </div>
                   </div>
                 ))}

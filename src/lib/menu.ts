@@ -3,6 +3,7 @@ export interface MenuItem {
   name: string;
   price: number;
   category: string;
+  image?: string;
 }
 
 export interface CartItem extends MenuItem {
@@ -43,6 +44,7 @@ export interface Customer {
   name: string;
   phone: string;
   address: string;
+  deliveryCharges?: number;
 }
 
 export const CATEGORIES = [

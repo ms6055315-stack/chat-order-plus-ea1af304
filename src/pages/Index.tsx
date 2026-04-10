@@ -96,6 +96,7 @@ const Index = () => {
     if (matches.length === 1) {
       setCustomerName(matches[0].name);
       setCustomerAddress(matches[0].address);
+      if (matches[0].deliveryCharges) setDeliveryCharges(matches[0].deliveryCharges);
       setPhoneSuggestions([]);
       setShowSuggestions(false);
       toast({ title: 'Customer found!', description: `${matches[0].name}` });
@@ -108,10 +109,11 @@ const Index = () => {
     }
   };
 
-  const handleSelectCustomer = (customer: { phone: string; name: string; address: string }) => {
+  const handleSelectCustomer = (customer: { phone: string; name: string; address: string; deliveryCharges?: number }) => {
     setCustomerPhone(customer.phone);
     setCustomerName(customer.name);
     setCustomerAddress(customer.address);
+    if (customer.deliveryCharges) setDeliveryCharges(customer.deliveryCharges);
     setPhoneSuggestions([]);
     setShowSuggestions(false);
   };
@@ -131,7 +133,7 @@ const Index = () => {
     }
 
     if (['delivery', 'takeout', 'car'].includes(orderType) && customerPhone) {
-      saveCustomer({ name: customerName, phone: customerPhone, address: customerAddress });
+      saveCustomer({ name: customerName, phone: customerPhone, address: customerAddress, deliveryCharges: orderType === 'delivery' ? deliveryCharges : undefined });
     }
 
     const orderData: Omit<Order, 'id' | 'createdAt'> = {

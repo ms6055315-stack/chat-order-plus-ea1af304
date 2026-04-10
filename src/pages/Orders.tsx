@@ -32,6 +32,7 @@ export default function OrdersPage() {
   const [editOrder, setEditOrder] = useState<Order | null>(null);
   const [editItems, setEditItems] = useState<CartItem[]>([]);
   const [menuSearch, setMenuSearch] = useState('');
+  const [editDeliveryCharges, setEditDeliveryCharges] = useState(0);
 
   const today = new Date();
   today.setHours(0, 0, 0, 0);
@@ -100,6 +101,7 @@ export default function OrdersPage() {
   const handleEditOpen = (order: Order) => {
     setEditOrder(order);
     setEditItems(order.items.map(i => ({ ...i })));
+    setEditDeliveryCharges(order.deliveryCharges || 0);
     setMenuSearch('');
   };
 
@@ -124,8 +126,10 @@ export default function OrdersPage() {
   const handleEditSave = () => {
     if (!editOrder || editItems.length === 0) return;
     const subtotal = editItems.reduce((s, i) => s + i.price * i.quantity, 0);
-    const total = subtotal; // simplified - discount not recalculated
-    updateOrder(editOrder.id, { items: editItems, subtotal, total });
+    const discount = editOrder.discount || 0;
+    const discountAmt = editOrder.discountType === 'percent' ? Math.round(subtotal * discount / 100) : discount;
+    const total = subtotal - discountAmt + editDeliveryCharges;
+    updateOrder(editOrder.id, { items: editItems, subtotal, total, deliveryCharges: editDeliveryCharges });
     toast({ title: 'Order updated!', description: `${editOrder.id} saved` });
     setEditOrder(null);
   };
@@ -226,9 +230,27 @@ export default function OrdersPage() {
                   ))}
                 </div>
 
-                <div className="flex justify-between items-center text-sm font-bold border-t border-border pt-1">
-                  <span>Total</span>
-                  <span className="text-secondary">Rs.{order.total}</span>
+                <div className="border-t border-border pt-1 space-y-0.5">
+                  <div className="flex justify-between text-xs text-muted-foreground">
+                    <span>Subtotal</span>
+                    <span>Rs.{order.subtotal}</span>
+                  </div>
+                  {(order.deliveryCharges || 0) > 0 && (
+                    <div className="flex justify-between text-xs text-muted-foreground">
+                      <span>Delivery</span>
+                      <span>Rs.{order.deliveryCharges}</span>
+                    </div>
+                  )}
+                  {order.discount > 0 && (
+                    <div className="flex justify-between text-xs text-muted-foreground">
+                      <span>Discount</span>
+                      <span>-Rs.{order.discountType === 'percent' ? Math.round(order.subtotal * order.discount / 100) : order.discount}</span>
+                    </div>
+                  )}
+                  <div className="flex justify-between text-sm font-bold">
+                    <span>Total</span>
+                    <span className="text-secondary">Rs.{order.total}</span>
+                  </div>
                 </div>
 
                 {order.paymentStatus === 'pay-later' && (
@@ -328,9 +350,28 @@ export default function OrdersPage() {
                   </div>
                 ))}
               </div>
-              <div className="p-2 border-t border-border">
+              <div className="p-2 border-t border-border space-y-1">
+                {editOrder?.orderType === 'delivery' && (
+                  <div className="flex items-center gap-1">
+                    <span className="text-[10px] text-muted-foreground">Delivery:</span>
+                    <Input
+                      type="number"
+                      value={editDeliveryCharges}
+                      onChange={e => setEditDeliveryCharges(Number(e.target.value) || 0)}
+                      className="h-6 text-xs w-20"
+                    />
+                  </div>
+                )}
+                <div className="text-right text-xs text-muted-foreground">
+                  Subtotal: Rs.{editItems.reduce((s, i) => s + i.price * i.quantity, 0)}
+                </div>
+                {editDeliveryCharges > 0 && (
+                  <div className="text-right text-xs text-muted-foreground">
+                    Delivery: Rs.{editDeliveryCharges}
+                  </div>
+                )}
                 <div className="text-right font-bold text-secondary text-sm">
-                  Total: Rs.{editItems.reduce((s, i) => s + i.price * i.quantity, 0)}
+                  Total: Rs.{editItems.reduce((s, i) => s + i.price * i.quantity, 0) + editDeliveryCharges}
                 </div>
               </div>
             </div>

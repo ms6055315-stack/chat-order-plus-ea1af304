@@ -234,6 +234,9 @@ const Index = () => {
           <Button variant="outline" size="sm" onClick={() => navigate('/orders')} className="gap-1 h-8 text-xs">
             <ClipboardList className="h-3.5 w-3.5" /> Orders
           </Button>
+          <Button variant="outline" size="sm" onClick={() => navigate('/self-service')} className="gap-1 h-8 text-xs">
+            <User className="h-3.5 w-3.5" /> Self Service
+          </Button>
           <Button variant="outline" size="sm" onClick={() => navigate('/reports')} className="gap-1 h-8 text-xs">
             <BarChart3 className="h-3.5 w-3.5" /> Reports
           </Button>

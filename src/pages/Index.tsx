@@ -19,7 +19,7 @@ import { AIAgentPanel, AIAgentButton } from '@/components/AIAgentPanel';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
-import { Phone, BarChart3, ClipboardList, Sun, Moon, Plus, X, Clock, User } from 'lucide-react';
+import { Phone, BarChart3, ClipboardList, Sun, Moon, Plus, X, Clock, MessageSquare, Settings } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 
 const Index = () => {

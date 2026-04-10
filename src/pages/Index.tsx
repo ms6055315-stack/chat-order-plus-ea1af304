@@ -133,7 +133,7 @@ const Index = () => {
     }
 
     if (['delivery', 'takeout', 'car'].includes(orderType) && customerPhone) {
-      saveCustomer({ name: customerName, phone: customerPhone, address: customerAddress });
+      saveCustomer({ name: customerName, phone: customerPhone, address: customerAddress, deliveryCharges: orderType === 'delivery' ? deliveryCharges : undefined });
     }
 
     const orderData: Omit<Order, 'id' | 'createdAt'> = {

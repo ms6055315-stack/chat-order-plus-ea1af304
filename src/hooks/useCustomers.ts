@@ -25,11 +25,11 @@ export function useCustomers() {
     return customers.filter(c => c.phone.includes(phone));
   }, [customers]);
 
-  const saveCustomer = useCallback((data: { name: string; phone: string; address: string }) => {
+  const saveCustomer = useCallback((data: { name: string; phone: string; address: string; deliveryCharges?: number }) => {
     if (!data.phone) return;
     const existing = customers.find(c => c.phone === data.phone);
     if (existing) {
-      save(customers.map(c => c.phone === data.phone ? { ...c, name: data.name || c.name, address: data.address || c.address } : c));
+      save(customers.map(c => c.phone === data.phone ? { ...c, name: data.name || c.name, address: data.address || c.address, deliveryCharges: data.deliveryCharges ?? c.deliveryCharges } : c));
     } else {
       save([...customers, { id: `C-${Date.now()}`, ...data }]);
     }

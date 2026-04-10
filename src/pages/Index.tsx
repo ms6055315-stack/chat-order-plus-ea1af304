@@ -229,7 +229,7 @@ const Index = () => {
         <div className="flex items-center gap-1.5 flex-wrap">
           <VoiceCommandButton isListening={voice.isListening} transcript={voice.transcript} isSupported={voice.isSupported} onToggle={voice.toggleListening} />
           <AIAgentButton isActive={agent.isAgentMode} onClick={() => agent.setIsAgentMode(!agent.isAgentMode)} />
-          <MenuManager items={menu.items} categories={menu.categories} onAddItem={menu.addItem} onUpdateItem={menu.updateItem} onDeleteItem={menu.deleteItem} onReset={menu.resetToDefault} />
+          <MenuManager items={menu.items} categories={menu.categories} onAddItem={menu.addItem} onUpdateItem={menu.updateItem} onDeleteItem={menu.deleteItem} onReset={menu.resetToDefault} onAddCategory={menu.addCategory} />
           <CustomerManager customers={customers} onUpdate={updateCustomer} onDelete={deleteCustomer} />
           <Button variant="outline" size="sm" onClick={() => navigate('/orders')} className="gap-1 h-8 text-xs">
             <ClipboardList className="h-3.5 w-3.5" /> Orders

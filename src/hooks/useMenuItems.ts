@@ -2,6 +2,7 @@ import { useState, useCallback } from 'react';
 import { MenuItem, DEFAULT_MENU_ITEMS, CATEGORIES } from '@/lib/menu';
 
 const STORAGE_KEY = 'rabbani_menu';
+const CAT_STORAGE_KEY = 'rabbani_categories';
 
 function loadItems(): MenuItem[] {
   try {
@@ -10,8 +11,16 @@ function loadItems(): MenuItem[] {
   } catch { return DEFAULT_MENU_ITEMS; }
 }
 
+function loadCategories(): string[] {
+  try {
+    const data = localStorage.getItem(CAT_STORAGE_KEY);
+    return data ? JSON.parse(data) : CATEGORIES;
+  } catch { return CATEGORIES; }
+}
+
 export function useMenuItems() {
   const [items, setItems] = useState<MenuItem[]>(loadItems);
+  const [categories, setCategories] = useState<string[]>(loadCategories);
 
   const save = (newItems: MenuItem[]) => {
     setItems(newItems);
@@ -32,7 +41,16 @@ export function useMenuItems() {
 
   const resetToDefault = useCallback(() => {
     save(DEFAULT_MENU_ITEMS);
+    setCategories(CATEGORIES);
+    localStorage.setItem(CAT_STORAGE_KEY, JSON.stringify(CATEGORIES));
   }, []);
 
-  return { items, categories: CATEGORIES, addItem, updateItem, deleteItem, resetToDefault };
+  const addCategory = useCallback((cat: string) => {
+    if (categories.includes(cat)) return;
+    const updated = [...categories, cat];
+    setCategories(updated);
+    localStorage.setItem(CAT_STORAGE_KEY, JSON.stringify(updated));
+  }, [categories]);
+
+  return { items, categories, addItem, updateItem, deleteItem, resetToDefault, addCategory };
 }

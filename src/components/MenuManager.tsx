@@ -37,9 +37,10 @@ export function MenuManager({ items, categories, onAddItem, onUpdateItem, onDele
 
   const handleAdd = () => {
     if (!name || !price) return;
-    onAddItem({ name, price: Number(price), category });
+    onAddItem({ name, price: Number(price), category, image: image || undefined });
     setName('');
     setPrice('');
+    setImage('');
   };
 
   const startEdit = (item: MenuItem) => {
@@ -47,11 +48,12 @@ export function MenuManager({ items, categories, onAddItem, onUpdateItem, onDele
     setEditName(item.name);
     setEditPrice(String(item.price));
     setEditCategory(item.category);
+    setEditImage(item.image || '');
   };
 
   const saveEdit = () => {
     if (!editId || !editName || !editPrice) return;
-    onUpdateItem(editId, { name: editName, price: Number(editPrice), category: editCategory });
+    onUpdateItem(editId, { name: editName, price: Number(editPrice), category: editCategory, image: editImage || undefined });
     setEditId(null);
   };
 

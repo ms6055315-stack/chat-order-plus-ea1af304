@@ -86,10 +86,14 @@ export default function OrdersPage() {
     let phone = order.customerPhone.replace(/[^0-9+]/g, '');
     if (phone.startsWith('0')) phone = '92' + phone.slice(1);
     if (!phone.startsWith('+') && !phone.startsWith('92')) phone = '92' + phone;
-    const itemsList = order.items.map(i => `${i.quantity}x ${i.name} - Rs.${i.price * i.quantity}`).join('%0a');
-    const msg = `*RABBANI Fast Food* 🍔%0a%0aOrder: ${order.id}%0a%0a${itemsList}%0a%0a*Total: Rs.${order.total}*%0a⏰ Estimated Time: 35-40 minutes%0a%0aThank you! 🙏`;
-    const url = `https://api.whatsapp.com/send?phone=${phone}&text=${msg}`;
-    window.open(url, '_blank');
+
+    const itemsList = order.items.map(i => `${i.quantity}x ${i.name} - Rs.${i.price * i.quantity}`).join('\n');
+    const msg = `*RABBANI Fast Food* 🍔\n\nOrder: ${order.id}\n\n${itemsList}\n\n*Total: Rs.${order.total}*\n⏰ Estimated Time: 35-40 minutes\n\nThank you! 🙏`;
+    const encoded = encodeURIComponent(msg);
+
+    // Try WhatsApp app first via intent, fallback to web
+    const waUrl = `https://wa.me/${phone}?text=${encoded}`;
+    window.open(waUrl, '_blank', 'noopener,noreferrer');
   };
 
   // Edit order

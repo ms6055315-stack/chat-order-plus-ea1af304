@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { Order, DaySession } from '@/lib/menu';
+import { Order, DaySession, CartItem } from '@/lib/menu';
 
 const STORAGE_KEY = 'rabbani_orders';
 const SESSION_KEY = 'rabbani_session';
@@ -77,6 +77,18 @@ export function useOrders() {
     saveOrders(updated);
   }, [orders]);
 
+  const updateOrder = useCallback((id: string, data: Partial<Order>) => {
+    const updated = orders.map(o => o.id === id ? { ...o, ...data } : o);
+    setOrders(updated);
+    saveOrders(updated);
+  }, [orders]);
+
+  const deleteOrder = useCallback((id: string) => {
+    const updated = orders.filter(o => o.id !== id);
+    setOrders(updated);
+    saveOrders(updated);
+  }, [orders]);
+
   const getTodayStats = useCallback(() => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -103,5 +115,5 @@ export function useOrders() {
     };
   }, [orders]);
 
-  return { orders, isDayOpen, currentSession, startDay, endDay, addOrder, updateOrderStatus, getTodayStats };
+  return { orders, isDayOpen, currentSession, startDay, endDay, addOrder, updateOrderStatus, updateOrder, deleteOrder, getTodayStats };
 }

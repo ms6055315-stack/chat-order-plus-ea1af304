@@ -1,4 +1,4 @@
-import { useRef, useCallback } from 'react';
+import { useCallback } from 'react';
 import { Order } from '@/lib/menu';
 import { Button } from '@/components/ui/button';
 import { Printer } from 'lucide-react';
@@ -8,25 +8,13 @@ interface PrintBillProps {
 }
 
 export function PrintBill({ order }: PrintBillProps) {
-  const printRef = useRef<HTMLDivElement>(null);
-  const isPrintingRef = useRef(false);
-
   const handlePrint = useCallback(() => {
-    if (isPrintingRef.current) return; // Prevent double print
-    isPrintingRef.current = true;
-
-    const content = printRef.current;
-    if (!content) { isPrintingRef.current = false; return; }
-
-    const printWindow = window.open('', '_blank', 'width=300,height=600');
-    if (!printWindow) { isPrintingRef.current = false; return; }
-
     const deliveryCharges = order.deliveryCharges || 0;
 
-    printWindow.document.write(`
-      <html><head><title>Bill</title>
+    const html = `
+      <html><head><title>Bill - ${order.id}</title>
       <style>
-        body { font-family: monospace; width: 80mm; margin: 0; padding: 5mm; font-size: 12px; }
+        body { font-family: 'Courier New', monospace; width: 80mm; margin: 0; padding: 5mm; font-size: 12px; color: #000; }
         .center { text-align: center; }
         .bold { font-weight: bold; }
         .line { border-top: 1px dashed #000; margin: 4px 0; }
@@ -56,22 +44,41 @@ export function PrintBill({ order }: PrintBillProps) {
       <div class="right bold" style="font-size:14px">Total: Rs.${order.total}</div>
       <div class="line"></div>
       <div class="center">Thank you! Visit again!</div>
+      <script>window.onload=function(){window.print();}<\/script>
       </body></html>
-    `);
+    `;
+
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) {
+      // Fallback: use iframe
+      const iframe = document.createElement('iframe');
+      iframe.style.position = 'fixed';
+      iframe.style.top = '-10000px';
+      iframe.style.left = '-10000px';
+      iframe.style.width = '80mm';
+      iframe.style.height = '0';
+      document.body.appendChild(iframe);
+      const doc = iframe.contentDocument || iframe.contentWindow?.document;
+      if (doc) {
+        doc.open();
+        doc.write(html);
+        doc.close();
+        setTimeout(() => {
+          iframe.contentWindow?.print();
+          setTimeout(() => document.body.removeChild(iframe), 3000);
+        }, 500);
+      }
+      return;
+    }
+
+    printWindow.document.open();
+    printWindow.document.write(html);
     printWindow.document.close();
-    printWindow.onafterprint = () => {
-      printWindow.close();
-      isPrintingRef.current = false;
-    };
-    setTimeout(() => {
-      printWindow.print();
-      setTimeout(() => { isPrintingRef.current = false; }, 2000);
-    }, 250);
   }, [order]);
 
   return (
-    <Button variant="outline" size="sm" onClick={handlePrint} className="gap-1.5">
-      <Printer className="h-3.5 w-3.5" />
+    <Button variant="outline" size="sm" onClick={handlePrint} className="h-6 text-[10px] gap-0.5 px-2">
+      <Printer className="h-2.5 w-2.5" />
       Bill
     </Button>
   );

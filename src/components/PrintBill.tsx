@@ -1,79 +1,86 @@
-import { useCallback } from 'react';
+import { useRef, useCallback } from 'react';
 import { Order } from '@/lib/menu';
 import { Button } from '@/components/ui/button';
 import { Printer } from 'lucide-react';
+import { loadPrintConfig } from './PrintSettings';
 
 interface PrintBillProps {
   order: Order;
 }
 
 export function PrintBill({ order }: PrintBillProps) {
+  const isPrintingRef = useRef(false);
+
   const handlePrint = useCallback(() => {
+    if (isPrintingRef.current) return;
+    isPrintingRef.current = true;
+
+    const c = loadPrintConfig();
     const deliveryCharges = order.deliveryCharges || 0;
+    const taxAmount = c.billShowTax ? Math.round(order.subtotal * c.billTaxPercent / 100) : 0;
 
-    const html = `
-      <html><head><title>Bill - ${order.id}</title>
-      <style>
-        body { font-family: 'Courier New', monospace; width: 80mm; margin: 0; padding: 5mm; font-size: 12px; color: #000; }
-        .center { text-align: center; }
-        .bold { font-weight: bold; }
-        .line { border-top: 1px dashed #000; margin: 4px 0; }
-        table { width: 100%; border-collapse: collapse; }
-        td { padding: 1px 0; }
-        .right { text-align: right; }
-      </style></head><body>
-      <div class="center bold" style="font-size:16px">RABBANI FAST FOOD</div>
-      <div class="center">0307-1203000 | 0316-1203000</div>
-      <div class="line"></div>
-      <div>Order: ${order.id}</div>
-      <div>Type: ${order.orderType.toUpperCase()}</div>
-      ${order.tableNumber ? `<div>Table: ${order.tableNumber}</div>` : ''}
-      ${order.customerName ? `<div>Customer: ${order.customerName}</div>` : ''}
-      ${order.customerPhone ? `<div>Phone: ${order.customerPhone}</div>` : ''}
-      ${order.customerAddress ? `<div>Address: ${order.customerAddress}</div>` : ''}
-      <div>Date: ${new Date(order.createdAt).toLocaleString()}</div>
-      <div class="line"></div>
-      <table>
-        <tr class="bold"><td>Item</td><td class="right">Qty</td><td class="right">Price</td></tr>
-        ${order.items.map(i => `<tr><td>${i.name}</td><td class="right">${i.quantity}</td><td class="right">Rs.${i.price * i.quantity}</td></tr>`).join('')}
-      </table>
-      <div class="line"></div>
-      <div class="right">Subtotal: Rs.${order.subtotal}</div>
-      ${order.discount > 0 ? `<div class="right">Discount: -Rs.${Math.round(order.subtotal - order.total + deliveryCharges)}</div>` : ''}
-      ${deliveryCharges > 0 ? `<div class="right">Delivery: Rs.${deliveryCharges}</div>` : ''}
-      <div class="right bold" style="font-size:14px">Total: Rs.${order.total}</div>
-      <div class="line"></div>
-      <div class="center">Thank you! Visit again!</div>
-      <script>window.onload=function(){window.print();}<\/script>
-      </body></html>
-    `;
+    const html = `<!DOCTYPE html>
+<html><head><meta charset="utf-8"><title>Bill - ${order.id}</title>
+<style>
+  @page { size: ${c.billWidth}mm auto; margin: 0; }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Courier New', monospace; width: ${c.billWidth}mm; margin: 0 auto; padding: 3mm; font-size: ${c.billFontSize}px; color: #000; line-height: 1.4; }
+  .center { text-align: center; }
+  .bold { font-weight: bold; }
+  .line { border-top: 1px dashed #000; margin: 3px 0; }
+  table { width: 100%; border-collapse: collapse; }
+  td { padding: 1px 0; vertical-align: top; }
+  .right { text-align: right; }
+  .header { font-size: ${c.billHeaderSize}px; font-weight: bold; }
+  .total-line { font-size: ${c.billFontSize + 2}px; font-weight: bold; }
+</style></head><body>
+<div class="center header">${c.billShopName}</div>
+<div class="center" style="font-size:${c.billFontSize - 1}px">${c.billPhone1} | ${c.billPhone2}</div>
+<div class="line"></div>
+<div>Order: <b>${order.id}</b></div>
+<div>Type: <b>${order.orderType.toUpperCase()}</b></div>
+${order.tableNumber ? `<div>Table: ${order.tableNumber}</div>` : ''}
+${order.customerName ? `<div>Customer: ${order.customerName}</div>` : ''}
+${order.customerPhone ? `<div>Phone: ${order.customerPhone}</div>` : ''}
+${order.customerAddress ? `<div>Address: ${order.customerAddress}</div>` : ''}
+<div>Date: ${new Date(order.createdAt).toLocaleString()}</div>
+<div class="line"></div>
+<table>
+  <tr class="bold"><td>Item</td><td class="right">Qty</td><td class="right">Price</td></tr>
+  ${order.items.map(i => `<tr><td>${i.name}</td><td class="right">${i.quantity}</td><td class="right">Rs.${i.price * i.quantity}</td></tr>`).join('')}
+</table>
+<div class="line"></div>
+<div class="right">Subtotal: Rs.${order.subtotal}</div>
+${order.discount > 0 ? `<div class="right">Discount: -Rs.${order.discountType === 'percent' ? Math.round(order.subtotal * order.discount / 100) : order.discount}</div>` : ''}
+${taxAmount > 0 ? `<div class="right">Tax (${c.billTaxPercent}%): Rs.${taxAmount}</div>` : ''}
+${deliveryCharges > 0 ? `<div class="right">Delivery: Rs.${deliveryCharges}</div>` : ''}
+<div class="right total-line">Total: Rs.${order.total}</div>
+<div class="line"></div>
+<div class="center">${c.billFooter}</div>
+</body></html>`;
 
-    const printWindow = window.open('', '_blank');
-    if (!printWindow) {
-      // Fallback: use iframe
-      const iframe = document.createElement('iframe');
-      iframe.style.position = 'fixed';
-      iframe.style.top = '-10000px';
-      iframe.style.left = '-10000px';
-      iframe.style.width = '80mm';
-      iframe.style.height = '0';
-      document.body.appendChild(iframe);
-      const doc = iframe.contentDocument || iframe.contentWindow?.document;
-      if (doc) {
-        doc.open();
-        doc.write(html);
-        doc.close();
-        setTimeout(() => {
+    const iframe = document.createElement('iframe');
+    iframe.style.cssText = 'position:fixed;top:-10000px;left:-10000px;width:0;height:0;border:none;';
+    document.body.appendChild(iframe);
+
+    const doc = iframe.contentDocument || iframe.contentWindow?.document;
+    if (doc) {
+      doc.open();
+      doc.write(html);
+      doc.close();
+      setTimeout(() => {
+        try {
           iframe.contentWindow?.print();
-          setTimeout(() => document.body.removeChild(iframe), 3000);
-        }, 500);
-      }
-      return;
+        } catch(e) { console.error(e); }
+        setTimeout(() => {
+          document.body.removeChild(iframe);
+          isPrintingRef.current = false;
+        }, 2000);
+      }, 300);
+    } else {
+      document.body.removeChild(iframe);
+      isPrintingRef.current = false;
     }
-
-    printWindow.document.open();
-    printWindow.document.write(html);
-    printWindow.document.close();
   }, [order]);
 
   return (

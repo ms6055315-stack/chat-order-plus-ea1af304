@@ -5,6 +5,7 @@ import { CartPanel } from '@/components/CartPanel';
 import { OrderTypeSelector } from '@/components/OrderTypeSelector';
 import { PrintBill } from '@/components/PrintBill';
 import { PrintToken } from '@/components/PrintToken';
+import { PrintSettings } from '@/components/PrintSettings';
 import { useCart } from '@/hooks/useCart';
 import { useOrders } from '@/hooks/useOrders';
 import { useMenuItems } from '@/hooks/useMenuItems';
@@ -19,7 +20,7 @@ import { AIAgentPanel, AIAgentButton } from '@/components/AIAgentPanel';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
-import { Phone, BarChart3, ClipboardList, Sun, Moon, Plus, X, Clock, MessageSquare, User } from 'lucide-react';
+import { Phone, BarChart3, ClipboardList, Sun, Moon, Plus, X, Clock, MessageSquare, User, Download, Trash2 } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 
 const Index = () => {
@@ -150,6 +151,7 @@ const Index = () => {
       discountType: cart.discountType,
       subtotal: cart.subtotal,
       total: cart.total + (orderType === 'delivery' ? deliveryCharges : 0),
+      extraCharges: cart.extraCharges,
       status: 'pending',
       paymentStatus,
     };
@@ -245,6 +247,7 @@ const Index = () => {
           <Button variant="outline" size="sm" onClick={() => navigate('/whatsapp-settings')} className="gap-1 h-8 text-xs">
             <MessageSquare className="h-3.5 w-3.5" /> WA
           </Button>
+          <PrintSettings />
 
           {!isDayOpen ? (
             <Button size="sm" onClick={() => setShowStartDayDialog(true)} className="gap-1 h-8 text-xs bg-success hover:bg-success/90 text-success-foreground">
@@ -283,11 +286,13 @@ const Index = () => {
               discountAmount={cart.discountAmount}
               total={cart.total}
               deliveryCharges={deliveryCharges}
+              extraCharges={cart.extraCharges}
               onQuantityChange={cart.updateQuantity}
               onRemoveItem={cart.removeItem}
               onDiscountChange={cart.setDiscount}
               onDiscountTypeChange={cart.setDiscountType}
               onDeliveryChargesChange={setDeliveryCharges}
+              onExtraChargesChange={cart.setExtraCharges}
               onAddItem={cart.addItem}
               showDelivery={orderType === 'delivery'}
             />

@@ -6,8 +6,8 @@ import { PrintBill } from '@/components/PrintBill';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
-import { Order, CartItem, MenuItem } from '@/lib/menu';
-import { ArrowLeft, Check, X, Truck, Coffee, Car, ShoppingBag, MessageCircle, Edit2, Minus, Plus, Search, Trash2 } from 'lucide-react';
+import { Order, CartItem, MenuItem, CATEGORIES } from '@/lib/menu';
+import { ArrowLeft, Check, X, Truck, Coffee, Car, ShoppingBag, MessageCircle, Edit2, Minus, Plus, Search, Trash2, Download } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 
 const ORDER_TABS: { value: Order['orderType']; label: string; icon: React.ReactNode }[] = [
@@ -33,6 +33,11 @@ export default function OrdersPage() {
   const [editItems, setEditItems] = useState<CartItem[]>([]);
   const [menuSearch, setMenuSearch] = useState('');
   const [editDeliveryCharges, setEditDeliveryCharges] = useState(0);
+  const [editCategory, setEditCategory] = useState('All');
+  const [editCustomerName, setEditCustomerName] = useState('');
+  const [editCustomerPhone, setEditCustomerPhone] = useState('');
+  const [editCustomerAddress, setEditCustomerAddress] = useState('');
+  const [editCustomerEmail, setEditCustomerEmail] = useState('');
 
   const today = new Date();
   today.setHours(0, 0, 0, 0);
@@ -67,16 +72,34 @@ export default function OrdersPage() {
     toast({ title: 'Order removed' });
   };
 
+  const downloadOrders = (ordersToDownload: Order[], label: string) => {
+    const data = JSON.stringify(ordersToDownload, null, 2);
+    const blob = new Blob([data], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `rabbani_${label}_${new Date().toISOString().slice(0,10)}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   const handleClearAllCompleted = () => {
     const toDelete = filteredOrders.filter(o => o.status === 'completed');
+    if (toDelete.length > 0) downloadOrders(toDelete, `completed_${activeTab}`);
     toDelete.forEach(o => deleteOrder(o.id));
-    toast({ title: `Cleared ${toDelete.length} completed orders` });
+    toast({ title: `Cleared ${toDelete.length} completed orders (backup downloaded)` });
   };
 
   const handleClearAllCancelled = () => {
     const toDelete = filteredOrders.filter(o => o.status === 'cancelled');
+    if (toDelete.length > 0) downloadOrders(toDelete, `cancelled_${activeTab}`);
     toDelete.forEach(o => deleteOrder(o.id));
-    toast({ title: `Cleared ${toDelete.length} cancelled orders` });
+    toast({ title: `Cleared ${toDelete.length} cancelled orders (backup downloaded)` });
+  };
+
+  const handleDownloadAll = () => {
+    downloadOrders(orders, 'all_orders');
+    toast({ title: 'All orders downloaded!' });
   };
 
   const handleWhatsApp = (order: Order) => {
@@ -91,10 +114,7 @@ export default function OrdersPage() {
     const itemsList = order.items.map(i => `${i.quantity}x ${i.name} - Rs.${i.price * i.quantity}`).join('\n');
     const msg = `*RABBANI Fast Food* 🍔\n\nOrder: ${order.id}\n\n${itemsList}\n\n*Total: Rs.${order.total}*\n⏰ Estimated Time: 35-40 minutes\n\nThank you! 🙏`;
     const encoded = encodeURIComponent(msg);
-
-    // Try WhatsApp app first via intent, fallback to web
-    const waUrl = `https://wa.me/${phone}?text=${encoded}`;
-    window.open(waUrl, '_blank', 'noopener,noreferrer');
+    window.open(`https://wa.me/${phone}?text=${encoded}`, '_blank', 'noopener,noreferrer');
   };
 
   // Edit order
@@ -102,7 +122,12 @@ export default function OrdersPage() {
     setEditOrder(order);
     setEditItems(order.items.map(i => ({ ...i })));
     setEditDeliveryCharges(order.deliveryCharges || 0);
+    setEditCustomerName(order.customerName || '');
+    setEditCustomerPhone(order.customerPhone || '');
+    setEditCustomerAddress(order.customerAddress || '');
+    setEditCustomerEmail('');
     setMenuSearch('');
+    setEditCategory('All');
   };
 
   const handleEditQuantity = (id: string, qty: number) => {
@@ -129,15 +154,25 @@ export default function OrdersPage() {
     const discount = editOrder.discount || 0;
     const discountAmt = editOrder.discountType === 'percent' ? Math.round(subtotal * discount / 100) : discount;
     const total = subtotal - discountAmt + editDeliveryCharges;
-    updateOrder(editOrder.id, { items: editItems, subtotal, total, deliveryCharges: editDeliveryCharges });
+    updateOrder(editOrder.id, {
+      items: editItems,
+      subtotal,
+      total,
+      deliveryCharges: editDeliveryCharges,
+      customerName: editCustomerName || undefined,
+      customerPhone: editCustomerPhone || undefined,
+      customerAddress: editCustomerAddress || undefined,
+    });
     toast({ title: 'Order updated!', description: `${editOrder.id} saved` });
     setEditOrder(null);
   };
 
-  // Filtered menu items for search
-  const searchResults = menuSearch.trim()
-    ? menu.items.filter(i => i.name.toLowerCase().includes(menuSearch.toLowerCase()))
-    : menu.items;
+  // Filtered menu items for search + category
+  const searchResults = menu.items.filter(i => {
+    const matchSearch = !menuSearch.trim() || i.name.toLowerCase().includes(menuSearch.toLowerCase());
+    const matchCat = editCategory === 'All' || i.category === editCategory;
+    return matchSearch && matchCat;
+  });
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -147,17 +182,21 @@ export default function OrdersPage() {
         </Button>
         <h1 className="text-lg font-bold text-primary">Orders Management</h1>
 
-        {/* Bulk clear buttons */}
-        {statusTab === 'completed' && filteredOrders.length > 0 && (
-          <Button size="sm" variant="outline" onClick={handleClearAllCompleted} className="ml-auto h-7 text-xs gap-1">
-            <Trash2 className="h-3 w-3" /> Clear All Completed
+        <div className="ml-auto flex gap-1">
+          <Button size="sm" variant="outline" onClick={handleDownloadAll} className="h-7 text-xs gap-1">
+            <Download className="h-3 w-3" /> Download All
           </Button>
-        )}
-        {statusTab === 'cancelled' && filteredOrders.length > 0 && (
-          <Button size="sm" variant="outline" onClick={handleClearAllCancelled} className="ml-auto h-7 text-xs gap-1">
-            <Trash2 className="h-3 w-3" /> Clear All Cancelled
-          </Button>
-        )}
+          {statusTab === 'completed' && filteredOrders.length > 0 && (
+            <Button size="sm" variant="outline" onClick={handleClearAllCompleted} className="h-7 text-xs gap-1">
+              <Trash2 className="h-3 w-3" /> Clear All Completed
+            </Button>
+          )}
+          {statusTab === 'cancelled' && filteredOrders.length > 0 && (
+            <Button size="sm" variant="outline" onClick={handleClearAllCancelled} className="h-7 text-xs gap-1">
+              <Trash2 className="h-3 w-3" /> Clear All Cancelled
+            </Button>
+          )}
+        </div>
       </header>
 
       {/* Order Type Tabs */}
@@ -235,6 +274,12 @@ export default function OrdersPage() {
                     <span>Subtotal</span>
                     <span>Rs.{order.subtotal}</span>
                   </div>
+                  {(order.extraCharges || 0) > 0 && (
+                    <div className="flex justify-between text-xs text-muted-foreground">
+                      <span>Extra Charges</span>
+                      <span>Rs.{order.extraCharges}</span>
+                    </div>
+                  )}
                   {(order.deliveryCharges || 0) > 0 && (
                     <div className="flex justify-between text-xs text-muted-foreground">
                       <span>Delivery</span>
@@ -289,36 +334,44 @@ export default function OrdersPage() {
         )}
       </div>
 
-      {/* Edit Order Dialog - Full Menu with Search */}
+      {/* Edit Order Dialog */}
       <Dialog open={!!editOrder} onOpenChange={open => !open && setEditOrder(null)}>
         <DialogContent className="max-w-3xl max-h-[85vh] overflow-hidden flex flex-col">
           <DialogHeader>
             <DialogTitle>Edit Order: {editOrder?.id}</DialogTitle>
-            <DialogDescription>Add or remove items, then save changes.</DialogDescription>
+            <DialogDescription>Edit items, customer info, then save.</DialogDescription>
           </DialogHeader>
 
+          {/* Customer Info Edit */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-2">
+            <Input value={editCustomerName} onChange={e => setEditCustomerName(e.target.value)} placeholder="Customer Name" className="h-7 text-xs" />
+            <Input value={editCustomerPhone} onChange={e => setEditCustomerPhone(e.target.value)} placeholder="Phone" className="h-7 text-xs" />
+            <Input value={editCustomerAddress} onChange={e => setEditCustomerAddress(e.target.value)} placeholder="Address" className="h-7 text-xs" />
+            <Input value={editCustomerEmail} onChange={e => setEditCustomerEmail(e.target.value)} placeholder="Email (optional)" className="h-7 text-xs" />
+          </div>
+
           <div className="flex gap-3 flex-1 overflow-hidden min-h-0">
-            {/* Left: Menu with search */}
+            {/* Left: Menu with search + categories */}
             <div className="flex-1 flex flex-col overflow-hidden border border-border rounded-lg">
-              <div className="p-2 border-b border-border">
+              <div className="p-2 border-b border-border space-y-1">
                 <div className="relative">
                   <Search className="h-3.5 w-3.5 absolute left-2 top-1/2 -translate-y-1/2 text-muted-foreground" />
-                  <Input
-                    value={menuSearch}
-                    onChange={e => setMenuSearch(e.target.value)}
-                    placeholder="Search menu items..."
-                    className="h-8 text-xs pl-7"
-                  />
+                  <Input value={menuSearch} onChange={e => setMenuSearch(e.target.value)} placeholder="Search menu items..." className="h-8 text-xs pl-7" />
+                </div>
+                <div className="flex gap-1 flex-wrap">
+                  {['All', ...menu.categories.filter(c => c !== 'All')].map(cat => (
+                    <button key={cat} onClick={() => setEditCategory(cat)}
+                      className={`px-2 py-0.5 text-[10px] rounded ${editCategory === cat ? 'bg-primary text-primary-foreground' : 'bg-accent text-accent-foreground'}`}>
+                      {cat}
+                    </button>
+                  ))}
                 </div>
               </div>
               <div className="flex-1 overflow-y-auto p-1 scrollbar-thin">
                 <div className="grid grid-cols-2 gap-1">
                   {searchResults.map(item => (
-                    <button
-                      key={item.id}
-                      onClick={() => handleAddMenuItem(item)}
-                      className="bg-accent/50 border border-border rounded p-1.5 text-left hover:border-primary hover:bg-accent transition-all active:scale-95"
-                    >
+                    <button key={item.id} onClick={() => handleAddMenuItem(item)}
+                      className="bg-accent/50 border border-border rounded p-1.5 text-left hover:border-primary hover:bg-accent transition-all active:scale-95">
                       <p className="text-[10px] font-medium leading-tight">{item.name}</p>
                       <p className="text-xs font-bold text-secondary">Rs.{item.price}</p>
                     </button>
@@ -354,12 +407,7 @@ export default function OrdersPage() {
                 {editOrder?.orderType === 'delivery' && (
                   <div className="flex items-center gap-1">
                     <span className="text-[10px] text-muted-foreground">Delivery:</span>
-                    <Input
-                      type="number"
-                      value={editDeliveryCharges}
-                      onChange={e => setEditDeliveryCharges(Number(e.target.value) || 0)}
-                      className="h-6 text-xs w-20"
-                    />
+                    <Input type="number" value={editDeliveryCharges} onChange={e => setEditDeliveryCharges(Number(e.target.value) || 0)} className="h-6 text-xs w-20" />
                   </div>
                 )}
                 <div className="text-right text-xs text-muted-foreground">

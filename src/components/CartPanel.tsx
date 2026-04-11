@@ -1,7 +1,9 @@
+import { useState } from 'react';
 import { CartItem, MenuItem } from '@/lib/menu';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Minus, Plus, Trash2 } from 'lucide-react';
+import { Minus, Plus, Trash2, Calculator } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
 interface CartPanelProps {
   items: CartItem[];
@@ -12,24 +14,39 @@ interface CartPanelProps {
   total: number;
   deliveryCharges: number;
   showDelivery: boolean;
+  extraCharges: number;
   onQuantityChange: (id: string, qty: number) => void;
   onRemoveItem: (id: string) => void;
   onDiscountChange: (d: number) => void;
   onDiscountTypeChange: (t: 'percent' | 'amount') => void;
   onDeliveryChargesChange: (c: number) => void;
+  onExtraChargesChange: (c: number) => void;
   onAddItem: (item: MenuItem) => void;
 }
 
 export function CartPanel({
   items, discount, discountType, subtotal, discountAmount, total,
-  deliveryCharges, showDelivery, onQuantityChange, onRemoveItem,
-  onDiscountChange, onDiscountTypeChange, onDeliveryChargesChange,
+  deliveryCharges, showDelivery, extraCharges, onQuantityChange, onRemoveItem,
+  onDiscountChange, onDiscountTypeChange, onDeliveryChargesChange, onExtraChargesChange,
 }: CartPanelProps) {
+  const [showKeypad, setShowKeypad] = useState(false);
+  const [keypadValue, setKeypadValue] = useState('');
   const grandTotal = total + (showDelivery ? deliveryCharges : 0);
+
+  const handleKeypadPress = (key: string) => {
+    if (key === 'C') { setKeypadValue(''); return; }
+    if (key === '⌫') { setKeypadValue(prev => prev.slice(0, -1)); return; }
+    if (key === 'OK') {
+      onExtraChargesChange(Number(keypadValue) || 0);
+      setShowKeypad(false);
+      setKeypadValue('');
+      return;
+    }
+    setKeypadValue(prev => prev + key);
+  };
 
   return (
     <div className="space-y-2">
-      {/* Cart items */}
       <div className="max-h-36 overflow-y-auto scrollbar-thin space-y-1">
         {items.length === 0 ? (
           <p className="text-muted-foreground text-sm text-center py-4">Cart is empty</p>
@@ -56,39 +73,48 @@ export function CartPanel({
         )}
       </div>
 
-      {/* Discount & Totals */}
-      <div className="flex items-center gap-2 text-xs">
+      <div className="flex items-center gap-2 text-xs flex-wrap">
         <span className="text-muted-foreground">Discount:</span>
-        <Input
-          type="number"
-          value={discount || ''}
-          onChange={e => onDiscountChange(Number(e.target.value))}
-          className="h-7 w-20 text-xs"
-          placeholder="0"
-        />
-        <button
-          onClick={() => onDiscountTypeChange(discountType === 'percent' ? 'amount' : 'percent')}
-          className="px-2 py-1 rounded bg-accent text-accent-foreground text-xs"
-        >
+        <Input type="number" value={discount || ''} onChange={e => onDiscountChange(Number(e.target.value))} className="h-7 w-16 text-xs" placeholder="0" />
+        <button onClick={() => onDiscountTypeChange(discountType === 'percent' ? 'amount' : 'percent')} className="px-2 py-1 rounded bg-accent text-accent-foreground text-xs">
           {discountType === 'percent' ? '%' : 'Rs'}
         </button>
+
+        <Button variant="outline" size="sm" onClick={() => { setKeypadValue(String(extraCharges || '')); setShowKeypad(true); }} className="h-7 text-xs gap-1 px-2">
+          <Calculator className="h-3 w-3" /> Extra: Rs.{extraCharges || 0}
+        </Button>
+
         {showDelivery && (
           <>
-            <span className="text-muted-foreground ml-2">Delivery:</span>
-            <Input
-              type="number"
-              value={deliveryCharges || ''}
-              onChange={e => onDeliveryChargesChange(Number(e.target.value))}
-              className="h-7 w-20 text-xs"
-              placeholder="0"
-            />
+            <span className="text-muted-foreground">Delivery:</span>
+            <Input type="number" value={deliveryCharges || ''} onChange={e => onDeliveryChargesChange(Number(e.target.value))} className="h-7 w-16 text-xs" placeholder="0" />
           </>
         )}
+
         <div className="ml-auto flex gap-4 font-bold">
           {discountAmount > 0 && <span className="text-muted-foreground">Sub: Rs.{subtotal} (-Rs.{Math.round(discountAmount)})</span>}
           <span className="text-secondary text-base">Total: Rs.{Math.round(grandTotal)}</span>
         </div>
       </div>
+
+      {/* Extra Charges Keypad Dialog */}
+      <Dialog open={showKeypad} onOpenChange={setShowKeypad}>
+        <DialogContent className="max-w-xs">
+          <DialogHeader><DialogTitle>Extra Charges</DialogTitle></DialogHeader>
+          <div className="text-center text-2xl font-bold py-2 bg-accent rounded mb-2">
+            Rs.{keypadValue || '0'}
+          </div>
+          <div className="grid grid-cols-3 gap-2">
+            {['1','2','3','4','5','6','7','8','9','C','0','⌫'].map(key => (
+              <button key={key} onClick={() => handleKeypadPress(key)}
+                className="h-12 rounded-lg bg-accent hover:bg-muted text-lg font-bold transition-colors">
+                {key}
+              </button>
+            ))}
+          </div>
+          <Button onClick={() => handleKeypadPress('OK')} className="w-full mt-2">Set Extra Charges</Button>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

@@ -283,11 +283,13 @@ const Index = () => {
               discountAmount={cart.discountAmount}
               total={cart.total}
               deliveryCharges={deliveryCharges}
+              extraCharges={cart.extraCharges}
               onQuantityChange={cart.updateQuantity}
               onRemoveItem={cart.removeItem}
               onDiscountChange={cart.setDiscount}
               onDiscountTypeChange={cart.setDiscountType}
               onDeliveryChargesChange={setDeliveryCharges}
+              onExtraChargesChange={cart.setExtraCharges}
               onAddItem={cart.addItem}
               showDelivery={orderType === 'delivery'}
             />

@@ -1,10 +1,30 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { MenuItem, CartItem } from '@/lib/menu';
 
+const CART_STORAGE_KEY = 'rabbani_cart';
+
+function loadCart(): { items: CartItem[]; discount: number; discountType: 'percent' | 'amount'; extraCharges: number } {
+  try {
+    const data = localStorage.getItem(CART_STORAGE_KEY);
+    if (!data) return { items: [], discount: 0, discountType: 'percent', extraCharges: 0 };
+    return JSON.parse(data);
+  } catch { return { items: [], discount: 0, discountType: 'percent', extraCharges: 0 }; }
+}
+
+function saveCart(items: CartItem[], discount: number, discountType: 'percent' | 'amount', extraCharges: number) {
+  localStorage.setItem(CART_STORAGE_KEY, JSON.stringify({ items, discount, discountType, extraCharges }));
+}
+
 export function useCart() {
-  const [items, setItems] = useState<CartItem[]>([]);
-  const [discount, setDiscount] = useState(0);
-  const [discountType, setDiscountType] = useState<'percent' | 'amount'>('percent');
+  const initial = loadCart();
+  const [items, setItems] = useState<CartItem[]>(initial.items);
+  const [discount, setDiscount] = useState(initial.discount);
+  const [discountType, setDiscountType] = useState<'percent' | 'amount'>(initial.discountType);
+  const [extraCharges, setExtraCharges] = useState(initial.extraCharges);
+
+  useEffect(() => {
+    saveCart(items, discount, discountType, extraCharges);
+  }, [items, discount, discountType, extraCharges]);
 
   const addItem = useCallback((item: MenuItem) => {
     setItems(prev => {
@@ -32,11 +52,12 @@ export function useCart() {
     setItems([]);
     setDiscount(0);
     setDiscountType('percent');
+    setExtraCharges(0);
   }, []);
 
   const subtotal = items.reduce((sum, i) => sum + i.price * i.quantity, 0);
   const discountAmount = discountType === 'percent' ? subtotal * discount / 100 : discount;
-  const total = Math.max(0, subtotal - discountAmount);
+  const total = Math.max(0, subtotal - discountAmount + extraCharges);
 
-  return { items, addItem, removeItem, updateQuantity, clearCart, discount, discountType, setDiscount, setDiscountType, subtotal, discountAmount, total };
+  return { items, addItem, removeItem, updateQuantity, clearCart, discount, discountType, setDiscount, setDiscountType, subtotal, discountAmount, total, extraCharges, setExtraCharges };
 }

@@ -19,6 +19,7 @@ export interface Order {
   customerPhone?: string;
   customerAddress?: string;
   deliveryCharges?: number;
+  extraCharges?: number;
   riderName?: string;
   waiterName?: string;
   discount: number;

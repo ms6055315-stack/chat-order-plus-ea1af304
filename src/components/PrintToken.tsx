@@ -16,20 +16,22 @@ export function PrintToken({ order }: PrintTokenProps) {
     isPrintingRef.current = true;
 
     const c = loadPrintConfig();
+    const fontWeight = c.tokenBold ? 'bold' : 'normal';
+    const fontStyle = c.tokenItalic ? 'italic' : 'normal';
 
     const html = `<!DOCTYPE html>
 <html><head><meta charset="utf-8"><title>Token - ${order.id}</title>
 <style>
   @page { size: ${c.tokenWidth}mm auto; margin: 0; }
   * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { font-family: 'Courier New', monospace; width: ${c.tokenWidth}mm; margin: 0 auto; padding: 3mm; font-size: ${c.tokenFontSize}px; color: #000; line-height: 1.4; }
+  body { font-family: 'Courier New', monospace; width: ${c.tokenWidth}mm; margin: 0 auto; padding: 3mm; font-size: ${c.tokenFontSize}px; color: #000; line-height: 1.4; font-weight: ${fontWeight}; font-style: ${fontStyle}; }
   .center { text-align: center; }
   .bold { font-weight: bold; }
   .line { border-top: 1px dashed #000; margin: 3px 0; }
   .header { font-size: ${c.tokenHeaderSize}px; font-weight: bold; }
   .big { font-size: ${c.tokenIdSize}px; font-weight: bold; }
 </style></head><body>
-<div class="center header">${loadPrintConfig().billShopName}</div>
+<div class="center header">${c.billShopName}</div>
 <div class="center bold big">${order.id}</div>
 <div class="line"></div>
 <div class="center bold">${order.orderType.toUpperCase()}</div>

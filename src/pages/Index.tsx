@@ -20,7 +20,7 @@ import { AIAgentPanel, AIAgentButton } from '@/components/AIAgentPanel';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
-import { Phone, BarChart3, ClipboardList, Sun, Moon, Plus, X, Clock, MessageSquare, User, Download, Trash2 } from 'lucide-react';
+import { Phone, BarChart3, ClipboardList, Sun, Moon, Plus, X, Clock, MessageSquare, User } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 
 const Index = () => {
@@ -34,15 +34,7 @@ const Index = () => {
   const phoneInputRef = useRef<HTMLDivElement>(null);
 
   const [selectedCategory, setSelectedCategory] = useState('All');
-  const [orderType, setOrderType] = useState<Order['orderType']>('dine-in');
-  const [tableNumber, setTableNumber] = useState('');
-  const [customerName, setCustomerName] = useState('');
-  const [customerPhone, setCustomerPhone] = useState('');
-  const [customerAddress, setCustomerAddress] = useState('');
   const [paymentStatus, setPaymentStatus] = useState<'paid' | 'pay-later'>('paid');
-  const [deliveryCharges, setDeliveryCharges] = useState(0);
-  const [riderName, setRiderName] = useState('');
-  const [waiterName, setWaiterName] = useState('');
 
   const [showStartDayDialog, setShowStartDayDialog] = useState(false);
   const [showEndDayDialog, setShowEndDayDialog] = useState(false);
@@ -74,34 +66,25 @@ const Index = () => {
 
   const handleNewOrder = () => {
     cart.clearCart();
-    setOrderType('dine-in');
-    setTableNumber('');
-    setCustomerName('');
-    setCustomerPhone('');
-    setCustomerAddress('');
-    setDeliveryCharges(0);
     setPaymentStatus('paid');
-    setRiderName('');
-    setWaiterName('');
     setLastOrder(null);
   };
 
   const handlePhoneChange = (phone: string) => {
-    setCustomerPhone(phone);
+    cart.setCustomerPhone(phone);
+    // If phone is cleared or shortened, clear related fields
     if (phone.length < 7) {
+      if (phone.length < 4) {
+        cart.setCustomerName('');
+        cart.setCustomerAddress('');
+        cart.setDeliveryCharges(0);
+      }
       setPhoneSuggestions([]);
       setShowSuggestions(false);
       return;
     }
     const matches = searchByPhone(phone);
-    if (matches.length === 1) {
-      setCustomerName(matches[0].name);
-      setCustomerAddress(matches[0].address);
-      if (matches[0].deliveryCharges) setDeliveryCharges(matches[0].deliveryCharges);
-      setPhoneSuggestions([]);
-      setShowSuggestions(false);
-      toast({ title: 'Customer found!', description: `${matches[0].name}` });
-    } else if (matches.length > 1) {
+    if (matches.length > 0) {
       setPhoneSuggestions(matches);
       setShowSuggestions(true);
     } else {
@@ -111,10 +94,10 @@ const Index = () => {
   };
 
   const handleSelectCustomer = (customer: { phone: string; name: string; address: string; deliveryCharges?: number }) => {
-    setCustomerPhone(customer.phone);
-    setCustomerName(customer.name);
-    setCustomerAddress(customer.address);
-    if (customer.deliveryCharges) setDeliveryCharges(customer.deliveryCharges);
+    cart.setCustomerPhone(customer.phone);
+    cart.setCustomerName(customer.name);
+    cart.setCustomerAddress(customer.address);
+    if (customer.deliveryCharges) cart.setDeliveryCharges(customer.deliveryCharges);
     setPhoneSuggestions([]);
     setShowSuggestions(false);
   };
@@ -124,33 +107,33 @@ const Index = () => {
       toast({ title: 'Empty cart', description: 'Add items first', variant: 'destructive' });
       return;
     }
-    if (orderType === 'delivery' && (!customerPhone || !customerAddress)) {
+    if (cart.orderType === 'delivery' && (!cart.customerPhone || !cart.customerAddress)) {
       toast({ title: 'Missing info', description: 'Enter phone & address for delivery', variant: 'destructive' });
       return;
     }
-    if (orderType === 'dine-in' && !tableNumber) {
+    if (cart.orderType === 'dine-in' && !cart.tableNumber) {
       toast({ title: 'Missing table', description: 'Enter table number', variant: 'destructive' });
       return;
     }
 
-    if (['delivery', 'takeout', 'car'].includes(orderType) && customerPhone) {
-      saveCustomer({ name: customerName, phone: customerPhone, address: customerAddress, deliveryCharges: orderType === 'delivery' ? deliveryCharges : undefined });
+    if (['delivery', 'takeout', 'car'].includes(cart.orderType) && cart.customerPhone) {
+      saveCustomer({ name: cart.customerName, phone: cart.customerPhone, address: cart.customerAddress, deliveryCharges: cart.orderType === 'delivery' ? cart.deliveryCharges : undefined });
     }
 
     const orderData: Omit<Order, 'id' | 'createdAt'> = {
       items: cart.items,
-      orderType,
-      tableNumber: orderType === 'dine-in' ? tableNumber : undefined,
-      customerName: customerName || undefined,
-      customerPhone: customerPhone || undefined,
-      customerAddress: orderType === 'delivery' ? customerAddress : undefined,
-      deliveryCharges: orderType === 'delivery' ? deliveryCharges : undefined,
-      riderName: orderType === 'delivery' ? riderName || undefined : undefined,
-      waiterName: orderType === 'dine-in' ? waiterName || undefined : undefined,
+      orderType: cart.orderType as Order['orderType'],
+      tableNumber: cart.orderType === 'dine-in' ? cart.tableNumber : undefined,
+      customerName: cart.customerName || undefined,
+      customerPhone: cart.customerPhone || undefined,
+      customerAddress: cart.orderType === 'delivery' ? cart.customerAddress : undefined,
+      deliveryCharges: cart.orderType === 'delivery' ? cart.deliveryCharges : undefined,
+      riderName: cart.orderType === 'delivery' ? cart.riderName || undefined : undefined,
+      waiterName: cart.orderType === 'dine-in' ? cart.waiterName || undefined : undefined,
       discount: cart.discount,
       discountType: cart.discountType,
       subtotal: cart.subtotal,
-      total: cart.total + (orderType === 'delivery' ? deliveryCharges : 0),
+      total: cart.total + (cart.orderType === 'delivery' ? cart.deliveryCharges : 0),
       extraCharges: cart.extraCharges,
       status: 'pending',
       paymentStatus,
@@ -184,38 +167,39 @@ const Index = () => {
     addItem: cart.addItem,
     removeItem: cart.removeItem,
     clearCart: cart.clearCart,
-    setOrderType: (type) => setOrderType(type as any),
-    setCustomerName,
-    setCustomerPhone,
-    setCustomerAddress,
-    setTableNumber,
-    setRiderName,
-    setWaiterName,
+    setOrderType: (type) => cart.setOrderType(type),
+    setCustomerName: cart.setCustomerName,
+    setCustomerPhone: cart.setCustomerPhone,
+    setCustomerAddress: cart.setCustomerAddress,
+    setTableNumber: cart.setTableNumber,
+    setRiderName: cart.setRiderName,
+    setWaiterName: cart.setWaiterName,
     setDiscount: cart.setDiscount,
     setDiscountType: cart.setDiscountType,
-    setDeliveryCharges,
+    setDeliveryCharges: cart.setDeliveryCharges,
     setPaymentStatus: (s) => setPaymentStatus(s as any),
     closeOrder: handleCloseOrder,
     newOrder: handleNewOrder,
     menuItems: menu.items,
     cartItems: cart.items,
-    orderType,
+    orderType: cart.orderType,
   });
 
   const stats = getTodayStats();
   const previewOrder: Order | null = cart.items.length > 0 ? {
     id: `PREVIEW`,
     items: cart.items,
-    orderType,
-    tableNumber: orderType === 'dine-in' ? tableNumber : undefined,
-    customerName: customerName || undefined,
-    customerPhone: customerPhone || undefined,
-    customerAddress: orderType === 'delivery' ? customerAddress : undefined,
-    deliveryCharges: orderType === 'delivery' ? deliveryCharges : undefined,
+    orderType: cart.orderType as Order['orderType'],
+    tableNumber: cart.orderType === 'dine-in' ? cart.tableNumber : undefined,
+    customerName: cart.customerName || undefined,
+    customerPhone: cart.customerPhone || undefined,
+    customerAddress: cart.orderType === 'delivery' ? cart.customerAddress : undefined,
+    deliveryCharges: cart.orderType === 'delivery' ? cart.deliveryCharges : undefined,
     discount: cart.discount,
     discountType: cart.discountType,
     subtotal: cart.subtotal,
-    total: cart.total + (orderType === 'delivery' ? deliveryCharges : 0),
+    total: cart.total + (cart.orderType === 'delivery' ? cart.deliveryCharges : 0),
+    extraCharges: cart.extraCharges,
     status: 'pending',
     paymentStatus,
     createdAt: new Date(),
@@ -285,21 +269,21 @@ const Index = () => {
               subtotal={cart.subtotal}
               discountAmount={cart.discountAmount}
               total={cart.total}
-              deliveryCharges={deliveryCharges}
+              deliveryCharges={cart.deliveryCharges}
               extraCharges={cart.extraCharges}
               onQuantityChange={cart.updateQuantity}
               onRemoveItem={cart.removeItem}
               onDiscountChange={cart.setDiscount}
               onDiscountTypeChange={cart.setDiscountType}
-              onDeliveryChargesChange={setDeliveryCharges}
+              onDeliveryChargesChange={cart.setDeliveryCharges}
               onExtraChargesChange={cart.setExtraCharges}
               onAddItem={cart.addItem}
-              showDelivery={orderType === 'delivery'}
+              showDelivery={cart.orderType === 'delivery'}
             />
           </div>
 
           <div className="w-72 space-y-2">
-            <OrderTypeSelector value={orderType} onChange={setOrderType} />
+            <OrderTypeSelector value={cart.orderType as any} onChange={(t) => cart.setOrderType(t)} />
 
             <div className="flex gap-1">
               <Button
@@ -312,32 +296,34 @@ const Index = () => {
               ><Clock className="h-3 w-3" /> Pay Later</Button>
             </div>
 
-            {orderType === 'dine-in' && (
+            {cart.orderType === 'dine-in' && (
               <div className="space-y-1">
-                <Input placeholder="Table Number" value={tableNumber} onChange={e => setTableNumber(e.target.value)} className="h-7 text-xs" />
-                <Input placeholder="Waiter (optional)" value={waiterName} onChange={e => setWaiterName(e.target.value)} className="h-7 text-xs" />
+                <Input placeholder="Table Number" value={cart.tableNumber} onChange={e => cart.setTableNumber(e.target.value)} className="h-7 text-xs" />
+                <Input placeholder="Waiter (optional)" value={cart.waiterName} onChange={e => cart.setWaiterName(e.target.value)} className="h-7 text-xs" />
               </div>
             )}
 
-            {['delivery', 'takeout', 'car'].includes(orderType) && (
+            {['delivery', 'takeout', 'car'].includes(cart.orderType) && (
               <div className="space-y-1">
-                <Input placeholder="Customer Name" value={customerName} onChange={e => setCustomerName(e.target.value)} className="h-7 text-xs" />
+                <Input placeholder="Customer Name" value={cart.customerName} onChange={e => cart.setCustomerName(e.target.value)} className="h-7 text-xs" />
                 <div className="relative" ref={phoneInputRef}>
-                  <Input placeholder="Phone" value={customerPhone} onChange={e => handlePhoneChange(e.target.value)} className="h-7 text-xs" />
+                  <Input placeholder="Phone" value={cart.customerPhone} onChange={e => handlePhoneChange(e.target.value)} className="h-7 text-xs" />
                   {showSuggestions && phoneSuggestions.length > 0 && (
                     <div className="absolute z-50 w-full mt-1 bg-popover border border-border rounded shadow-lg max-h-32 overflow-y-auto">
                       {phoneSuggestions.map((c, i) => (
-                        <button key={i} onClick={() => handleSelectCustomer(c)} className="w-full text-left px-2 py-1 text-xs hover:bg-accent border-b border-border">
-                          <span className="font-medium">{c.name}</span> <span className="text-muted-foreground">{c.phone}</span>
+                        <button key={i} onClick={() => handleSelectCustomer(c)} className="w-full text-left px-2 py-1.5 text-xs hover:bg-accent border-b border-border">
+                          <span className="font-medium">{c.name}</span> — <span className="text-muted-foreground">{c.phone}</span>
+                          {c.address && <span className="block text-muted-foreground text-[10px]">{c.address}</span>}
+                          {c.deliveryCharges ? <span className="text-[10px] text-secondary"> Delivery: Rs.{c.deliveryCharges}</span> : null}
                         </button>
                       ))}
                     </div>
                   )}
                 </div>
-                {orderType === 'delivery' && (
+                {cart.orderType === 'delivery' && (
                   <>
-                    <Input placeholder="Address" value={customerAddress} onChange={e => setCustomerAddress(e.target.value)} className="h-7 text-xs" />
-                    <Input placeholder="Rider (optional)" value={riderName} onChange={e => setRiderName(e.target.value)} className="h-7 text-xs" />
+                    <Input placeholder="Address" value={cart.customerAddress} onChange={e => cart.setCustomerAddress(e.target.value)} className="h-7 text-xs" />
+                    <Input placeholder="Rider (optional)" value={cart.riderName} onChange={e => cart.setRiderName(e.target.value)} className="h-7 text-xs" />
                   </>
                 )}
               </div>

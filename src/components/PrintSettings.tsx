@@ -1,41 +1,47 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Settings } from 'lucide-react';
 
 export interface PrintConfig {
-  // Bill settings
-  billWidth: number; // mm
-  billFontSize: number; // px
-  billHeaderSize: number; // px
+  billWidth: number;
+  billFontSize: number;
+  billHeaderSize: number;
   billShowTax: boolean;
   billTaxPercent: number;
   billShopName: string;
   billPhone1: string;
   billPhone2: string;
   billFooter: string;
-  // Token settings
+  billBold: boolean;
+  billItalic: boolean;
   tokenWidth: number;
   tokenFontSize: number;
   tokenHeaderSize: number;
   tokenIdSize: number;
+  tokenBold: boolean;
+  tokenItalic: boolean;
 }
 
 const DEFAULT_CONFIG: PrintConfig = {
-  billWidth: 72,
-  billFontSize: 12,
-  billHeaderSize: 16,
+  billWidth: 80,
+  billFontSize: 13,
+  billHeaderSize: 18,
   billShowTax: false,
   billTaxPercent: 0,
   billShopName: 'RABBANI FAST FOOD',
   billPhone1: '0307-1203000',
   billPhone2: '0316-1203000',
   billFooter: 'Thank you! Visit again!',
-  tokenWidth: 72,
-  tokenFontSize: 13,
-  tokenHeaderSize: 16,
-  tokenIdSize: 22,
+  billBold: true,
+  billItalic: false,
+  tokenWidth: 80,
+  tokenFontSize: 14,
+  tokenHeaderSize: 18,
+  tokenIdSize: 24,
+  tokenBold: true,
+  tokenItalic: false,
 };
 
 const STORAGE_KEY = 'rabbani_print_config';
@@ -121,6 +127,16 @@ export function PrintSettings() {
                 <label className="text-xs font-medium">Header Size (px)</label>
                 <Input type="number" value={config.billHeaderSize} onChange={e => update('billHeaderSize', Number(e.target.value))} className="h-8 text-xs mt-1" />
               </div>
+              <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2">
+                  <input type="checkbox" checked={config.billBold} onChange={e => update('billBold', e.target.checked)} id="billBold" />
+                  <label htmlFor="billBold" className="text-xs font-bold">Bold</label>
+                </div>
+                <div className="flex items-center gap-2">
+                  <input type="checkbox" checked={config.billItalic} onChange={e => update('billItalic', e.target.checked)} id="billItalic" />
+                  <label htmlFor="billItalic" className="text-xs italic">Italic</label>
+                </div>
+              </div>
               <div className="flex items-center gap-2">
                 <input type="checkbox" checked={config.billShowTax} onChange={e => update('billShowTax', e.target.checked)} id="showTax" />
                 <label htmlFor="showTax" className="text-xs font-medium">Show Tax</label>
@@ -152,6 +168,16 @@ export function PrintSettings() {
               <div>
                 <label className="text-xs font-medium">Order ID Size (px)</label>
                 <Input type="number" value={config.tokenIdSize} onChange={e => update('tokenIdSize', Number(e.target.value))} className="h-8 text-xs mt-1" />
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2">
+                  <input type="checkbox" checked={config.tokenBold} onChange={e => update('tokenBold', e.target.checked)} id="tokenBold" />
+                  <label htmlFor="tokenBold" className="text-xs font-bold">Bold</label>
+                </div>
+                <div className="flex items-center gap-2">
+                  <input type="checkbox" checked={config.tokenItalic} onChange={e => update('tokenItalic', e.target.checked)} id="tokenItalic" />
+                  <label htmlFor="tokenItalic" className="text-xs italic">Italic</label>
+                </div>
               </div>
             </div>
           )}

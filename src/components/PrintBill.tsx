@@ -17,14 +17,17 @@ export function PrintBill({ order }: PrintBillProps) {
 
     const c = loadPrintConfig();
     const deliveryCharges = order.deliveryCharges || 0;
+    const extraCharges = order.extraCharges || 0;
     const taxAmount = c.billShowTax ? Math.round(order.subtotal * c.billTaxPercent / 100) : 0;
+    const fontWeight = c.billBold ? 'bold' : 'normal';
+    const fontStyle = c.billItalic ? 'italic' : 'normal';
 
     const html = `<!DOCTYPE html>
 <html><head><meta charset="utf-8"><title>Bill - ${order.id}</title>
 <style>
-  @page { size: ${c.billWidth}mm auto; margin: 0; }
+  @page { size: ${c.billWidth}mm 297mm; margin: 0; }
   * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { font-family: 'Courier New', monospace; width: ${c.billWidth}mm; margin: 0 auto; padding: 3mm; font-size: ${c.billFontSize}px; color: #000; line-height: 1.4; }
+  body { font-family: 'Courier New', monospace; width: ${c.billWidth}mm; margin: 0 auto; padding: 3mm; font-size: ${c.billFontSize}px; color: #000; line-height: 1.4; font-weight: ${fontWeight}; font-style: ${fontStyle}; }
   .center { text-align: center; }
   .bold { font-weight: bold; }
   .line { border-top: 1px dashed #000; margin: 3px 0; }
@@ -32,7 +35,7 @@ export function PrintBill({ order }: PrintBillProps) {
   td { padding: 1px 0; vertical-align: top; }
   .right { text-align: right; }
   .header { font-size: ${c.billHeaderSize}px; font-weight: bold; }
-  .total-line { font-size: ${c.billFontSize + 2}px; font-weight: bold; }
+  .total-line { font-size: ${c.billFontSize + 3}px; font-weight: bold; }
 </style></head><body>
 <div class="center header">${c.billShopName}</div>
 <div class="center" style="font-size:${c.billFontSize - 1}px">${c.billPhone1} | ${c.billPhone2}</div>
@@ -52,6 +55,7 @@ ${order.customerAddress ? `<div>Address: ${order.customerAddress}</div>` : ''}
 <div class="line"></div>
 <div class="right">Subtotal: Rs.${order.subtotal}</div>
 ${order.discount > 0 ? `<div class="right">Discount: -Rs.${order.discountType === 'percent' ? Math.round(order.subtotal * order.discount / 100) : order.discount}</div>` : ''}
+${extraCharges > 0 ? `<div class="right">Extra Charges: Rs.${extraCharges}</div>` : ''}
 ${taxAmount > 0 ? `<div class="right">Tax (${c.billTaxPercent}%): Rs.${taxAmount}</div>` : ''}
 ${deliveryCharges > 0 ? `<div class="right">Delivery: Rs.${deliveryCharges}</div>` : ''}
 <div class="right total-line">Total: Rs.${order.total}</div>

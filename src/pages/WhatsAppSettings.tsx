@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
-import { ArrowLeft, Save, X } from 'lucide-react';
+import { ArrowLeft, Save, X, MessageCircle } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 
 const WA_SETTINGS_KEY = 'rabbani_whatsapp_settings';
@@ -81,6 +81,19 @@ export default function WhatsAppSettingsPage() {
             <li>Set a custom <span className="text-foreground">Verify Token</span> for webhooks</li>
           </ol>
         </div>
+
+        {settings.accessToken && settings.phoneNumberId && (
+          <div className="bg-card border border-border rounded-lg p-4 space-y-3">
+            <h2 className="text-sm font-bold flex items-center gap-2"><MessageCircle className="h-4 w-4 text-green-500" /> WhatsApp Connected</h2>
+            <p className="text-xs text-muted-foreground">Your WhatsApp Business API is configured. You can now send order messages to customers directly from the Orders page.</p>
+            <Button variant="outline" size="sm" onClick={() => {
+              const phone = settings.displayPhone?.replace(/[^0-9]/g, '') || '';
+              window.open(`https://wa.me/${phone}`, '_blank');
+            }} className="gap-1.5 text-xs">
+              <MessageCircle className="h-3.5 w-3.5" /> Open WhatsApp Chat
+            </Button>
+          </div>
+        )}
 
         <div className="flex gap-2">
           <Button onClick={handleSave} className="gap-1.5">

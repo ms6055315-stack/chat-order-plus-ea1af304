@@ -73,7 +73,7 @@ function savePrintConfig(config: PrintConfig) {
 
 export function PrintSettings() {
   const [open, setOpen] = useState(false);
-  const [tab, setTab] = useState<'bill' | 'token'>('bill');
+  const [tab, setTab] = useState<'bill' | 'token' | 'whatsapp'>('bill');
   const [config, setConfig] = useState<PrintConfig>(loadPrintConfig);
 
   const update = (key: keyof PrintConfig, value: any) => {
@@ -99,15 +99,18 @@ export function PrintSettings() {
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>Print Settings</DialogTitle>
+            <DialogTitle>Print & Message Settings</DialogTitle>
           </DialogHeader>
 
-          <div className="flex gap-1 mb-3">
+          <div className="flex gap-1 mb-3 flex-wrap">
             <button onClick={() => setTab('bill')} className={`px-3 py-1.5 text-xs font-medium rounded ${tab === 'bill' ? 'bg-primary text-primary-foreground' : 'bg-accent text-accent-foreground'}`}>
               Bill Settings
             </button>
             <button onClick={() => setTab('token')} className={`px-3 py-1.5 text-xs font-medium rounded ${tab === 'token' ? 'bg-primary text-primary-foreground' : 'bg-accent text-accent-foreground'}`}>
               Token Settings
+            </button>
+            <button onClick={() => setTab('whatsapp')} className={`px-3 py-1.5 text-xs font-medium rounded ${tab === 'whatsapp' ? 'bg-primary text-primary-foreground' : 'bg-accent text-accent-foreground'}`}>
+              WhatsApp Messages
             </button>
           </div>
 
@@ -133,13 +136,41 @@ export function PrintSettings() {
                   <Input type="number" value={config.billWidth} onChange={e => update('billWidth', Number(e.target.value))} className="h-8 text-xs mt-1" />
                 </div>
                 <div>
-                  <label className="text-xs font-medium">Font Size (px)</label>
+                  <label className="text-xs font-medium">Body Font Size (px)</label>
                   <Input type="number" value={config.billFontSize} onChange={e => update('billFontSize', Number(e.target.value))} className="h-8 text-xs mt-1" />
                 </div>
               </div>
-              <div>
-                <label className="text-xs font-medium">Header Size (px)</label>
-                <Input type="number" value={config.billHeaderSize} onChange={e => update('billHeaderSize', Number(e.target.value))} className="h-8 text-xs mt-1" />
+              <div className="grid grid-cols-3 gap-2">
+                <div>
+                  <label className="text-xs font-medium">Header Size (px)</label>
+                  <Input type="number" value={config.billHeaderSize} onChange={e => update('billHeaderSize', Number(e.target.value))} className="h-8 text-xs mt-1" />
+                </div>
+                <div>
+                  <label className="text-xs font-medium">Item Size (px)</label>
+                  <Input type="number" value={config.billItemSize} onChange={e => update('billItemSize', Number(e.target.value))} className="h-8 text-xs mt-1" />
+                </div>
+                <div>
+                  <label className="text-xs font-medium">Total Size (px)</label>
+                  <Input type="number" value={config.billTotalSize} onChange={e => update('billTotalSize', Number(e.target.value))} className="h-8 text-xs mt-1" />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="text-xs font-medium">Header Align</label>
+                  <select value={config.billHeaderAlign} onChange={e => update('billHeaderAlign', e.target.value)} className="w-full h-8 text-xs mt-1 border border-border rounded px-2 bg-background">
+                    <option value="left">Left</option>
+                    <option value="center">Center</option>
+                    <option value="right">Right</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="text-xs font-medium">Item Align</label>
+                  <select value={config.billItemAlign} onChange={e => update('billItemAlign', e.target.value)} className="w-full h-8 text-xs mt-1 border border-border rounded px-2 bg-background">
+                    <option value="left">Left</option>
+                    <option value="center">Center</option>
+                    <option value="right">Right</option>
+                  </select>
+                </div>
               </div>
               <div className="flex items-center gap-3">
                 <div className="flex items-center gap-2">
@@ -166,22 +197,30 @@ export function PrintSettings() {
           )}
 
           {tab === 'token' && (
-            <div className="space-y-3">
+            <div className="space-y-3 max-h-[50vh] overflow-y-auto">
               <div>
                 <label className="text-xs font-medium">Paper Width (mm)</label>
                 <Input type="number" value={config.tokenWidth} onChange={e => update('tokenWidth', Number(e.target.value))} className="h-8 text-xs mt-1" />
               </div>
-              <div>
-                <label className="text-xs font-medium">Font Size (px)</label>
-                <Input type="number" value={config.tokenFontSize} onChange={e => update('tokenFontSize', Number(e.target.value))} className="h-8 text-xs mt-1" />
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="text-xs font-medium">Font Size (px)</label>
+                  <Input type="number" value={config.tokenFontSize} onChange={e => update('tokenFontSize', Number(e.target.value))} className="h-8 text-xs mt-1" />
+                </div>
+                <div>
+                  <label className="text-xs font-medium">Item Size (px)</label>
+                  <Input type="number" value={config.tokenItemSize} onChange={e => update('tokenItemSize', Number(e.target.value))} className="h-8 text-xs mt-1" />
+                </div>
               </div>
-              <div>
-                <label className="text-xs font-medium">Header Size (px)</label>
-                <Input type="number" value={config.tokenHeaderSize} onChange={e => update('tokenHeaderSize', Number(e.target.value))} className="h-8 text-xs mt-1" />
-              </div>
-              <div>
-                <label className="text-xs font-medium">Order ID Size (px)</label>
-                <Input type="number" value={config.tokenIdSize} onChange={e => update('tokenIdSize', Number(e.target.value))} className="h-8 text-xs mt-1" />
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="text-xs font-medium">Header Size (px)</label>
+                  <Input type="number" value={config.tokenHeaderSize} onChange={e => update('tokenHeaderSize', Number(e.target.value))} className="h-8 text-xs mt-1" />
+                </div>
+                <div>
+                  <label className="text-xs font-medium">Order ID Size (px)</label>
+                  <Input type="number" value={config.tokenIdSize} onChange={e => update('tokenIdSize', Number(e.target.value))} className="h-8 text-xs mt-1" />
+                </div>
               </div>
               <div className="flex items-center gap-3">
                 <div className="flex items-center gap-2">
@@ -192,6 +231,21 @@ export function PrintSettings() {
                   <input type="checkbox" checked={config.tokenItalic} onChange={e => update('tokenItalic', e.target.checked)} id="tokenItalic" />
                   <label htmlFor="tokenItalic" className="text-xs italic">Italic</label>
                 </div>
+              </div>
+            </div>
+          )}
+
+          {tab === 'whatsapp' && (
+            <div className="space-y-3 max-h-[50vh] overflow-y-auto">
+              <div>
+                <label className="text-xs font-medium">Order Message Template</label>
+                <p className="text-[10px] text-muted-foreground mb-1">Variables: {'{orderId}'}, {'{items}'}, {'{total}'}, {'{subtotal}'}</p>
+                <textarea value={config.waMessageTemplate} onChange={e => update('waMessageTemplate', e.target.value)} className="w-full border border-border rounded p-2 text-xs h-28 bg-background resize-none" />
+              </div>
+              <div>
+                <label className="text-xs font-medium">Delivery Message Template</label>
+                <p className="text-[10px] text-muted-foreground mb-1">Variables: {'{orderId}'}, {'{items}'}, {'{total}'}, {'{subtotal}'}, {'{customerName}'}, {'{address}'}, {'{phone}'}, {'{deliveryCharges}'}</p>
+                <textarea value={config.waDeliveryTemplate} onChange={e => update('waDeliveryTemplate', e.target.value)} className="w-full border border-border rounded p-2 text-xs h-28 bg-background resize-none" />
               </div>
             </div>
           )}

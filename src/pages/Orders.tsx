@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useOrders } from '@/hooks/useOrders';
 import { useMenuItems } from '@/hooks/useMenuItems';
 import { PrintBill } from '@/components/PrintBill';
+import { loadPrintConfig } from '@/components/PrintSettings';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
@@ -113,8 +114,18 @@ export default function OrdersPage() {
     if (phone.startsWith('0')) phone = '92' + phone.slice(1);
     if (!phone.startsWith('+') && !phone.startsWith('92')) phone = '92' + phone;
 
+    const c = loadPrintConfig();
     const itemsList = order.items.map(i => `${i.quantity}x ${i.name} - Rs.${i.price * i.quantity}`).join('\n');
-    const msg = `*RABBANI Fast Food* 🍔\n\nOrder: ${order.id}\n\n${itemsList}\n\n*Total: Rs.${order.total}*\n⏰ Estimated Time: 35-40 minutes\n\nThank you! 🙏`;
+    const template = order.orderType === 'delivery' ? c.waDeliveryTemplate : c.waMessageTemplate;
+    const msg = template
+      .replace('{orderId}', order.id)
+      .replace('{items}', itemsList)
+      .replace('{total}', String(order.total))
+      .replace('{subtotal}', String(order.subtotal))
+      .replace('{customerName}', order.customerName || '')
+      .replace('{address}', order.customerAddress || '')
+      .replace('{phone}', order.customerPhone || '')
+      .replace('{deliveryCharges}', String(order.deliveryCharges || 0));
     const encoded = encodeURIComponent(msg);
     window.open(`https://wa.me/${phone}?text=${encoded}`, '_blank', 'noopener,noreferrer');
   };

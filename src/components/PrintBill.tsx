@@ -37,7 +37,9 @@ export function PrintBill({ order }: PrintBillProps) {
   .header { font-size: ${c.billHeaderSize}px; font-weight: bold; text-align: ${c.billHeaderAlign}; }
   .item-row { text-align: ${c.billItemAlign}; }
   .total-line { font-size: ${c.billTotalSize}px; font-weight: bold; }
+  .logo { max-width: 60%; max-height: 60px; margin: 0 auto 4px; display: block; }
 </style></head><body>
+${c.billLogo ? `<img src="${c.billLogo}" class="logo" />` : ''}
 <div class="header">${c.billShopName}</div>
 <div class="${c.billHeaderAlign === 'center' ? 'center' : ''}" style="font-size:${c.billFontSize - 1}px;text-align:${c.billHeaderAlign}">${c.billPhone1} | ${c.billPhone2}</div>
 <div class="line"></div>

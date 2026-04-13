@@ -20,6 +20,7 @@ export interface PrintConfig {
   billItalic: boolean;
   billHeaderAlign: 'left' | 'center' | 'right';
   billItemAlign: 'left' | 'center' | 'right';
+  billLogo: string;
   tokenWidth: number;
   tokenFontSize: number;
   tokenHeaderSize: number;
@@ -47,6 +48,7 @@ const DEFAULT_CONFIG: PrintConfig = {
   billItalic: false,
   billHeaderAlign: 'center',
   billItemAlign: 'left',
+  billLogo: '',
   tokenWidth: 80,
   tokenFontSize: 14,
   tokenHeaderSize: 18,
@@ -116,6 +118,19 @@ export function PrintSettings() {
 
           {tab === 'bill' && (
             <div className="space-y-3 max-h-[50vh] overflow-y-auto">
+              <div>
+                <label className="text-xs font-medium">Shop Logo (URL or base64)</label>
+                <Input value={config.billLogo} onChange={e => update('billLogo', e.target.value)} placeholder="https://... or paste base64" className="h-8 text-xs mt-1" />
+                <input type="file" accept="image/*" className="mt-1 text-xs" onChange={e => {
+                  const file = e.target.files?.[0];
+                  if (file) {
+                    const reader = new FileReader();
+                    reader.onload = () => update('billLogo', reader.result as string);
+                    reader.readAsDataURL(file);
+                  }
+                }} />
+                {config.billLogo && <img src={config.billLogo} alt="Logo" className="h-12 mt-1 object-contain" />}
+              </div>
               <div>
                 <label className="text-xs font-medium">Shop Name</label>
                 <Input value={config.billShopName} onChange={e => update('billShopName', e.target.value)} className="h-8 text-xs mt-1" />

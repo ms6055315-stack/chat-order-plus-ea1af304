@@ -95,9 +95,18 @@ export function MenuManager({ items, categories, onAddItem, onUpdateItem, onDele
                 </select>
                 <Button onClick={handleAdd} size="sm" className="h-8 text-xs gap-1"><Plus className="h-3 w-3" /> Add</Button>
               </div>
-              <div className="flex gap-2">
-                <Image className="h-4 w-4 text-muted-foreground mt-1.5" />
+              <div className="flex gap-2 items-center">
+                <Image className="h-4 w-4 text-muted-foreground" />
                 <Input value={image} onChange={e => setImage(e.target.value)} placeholder="Image URL (PNG/JPG) - optional" className="flex-1 h-8 text-xs" />
+                <input type="file" accept="image/*" className="text-xs w-32" onChange={e => {
+                  const file = e.target.files?.[0];
+                  if (file) {
+                    const reader = new FileReader();
+                    reader.onload = () => setImage(reader.result as string);
+                    reader.readAsDataURL(file);
+                  }
+                }} />
+                {image && <img src={image} alt="" className="w-8 h-8 rounded object-cover" />}
               </div>
             </div>
 
@@ -142,6 +151,14 @@ export function MenuManager({ items, categories, onAddItem, onUpdateItem, onDele
                       <div className="flex gap-1 items-center">
                         <Image className="h-3 w-3 text-muted-foreground" />
                         <Input value={editImage} onChange={e => setEditImage(e.target.value)} placeholder="Image URL (optional)" className="flex-1 h-6 text-[10px]" />
+                        <input type="file" accept="image/*" className="text-[10px] w-24" onChange={e => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            const reader = new FileReader();
+                            reader.onload = () => setEditImage(reader.result as string);
+                            reader.readAsDataURL(file);
+                          }
+                        }} />
                         {editImage && <img src={editImage} alt="" className="w-6 h-6 rounded object-cover" />}
                       </div>
                     </div>

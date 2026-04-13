@@ -195,17 +195,17 @@ export default function OrdersPage() {
         </Button>
         <h1 className="text-lg font-bold text-primary">Orders Management</h1>
 
-        <div className="ml-auto flex gap-1">
+        <div className="ml-auto flex gap-1 flex-wrap">
           <Button size="sm" variant="outline" onClick={handleDownloadAll} className="h-7 text-xs gap-1">
             <Download className="h-3 w-3" /> Download All
           </Button>
-          {statusTab === 'completed' && filteredOrders.length > 0 && (
-            <Button size="sm" variant="outline" onClick={handleClearAllCompleted} className="h-7 text-xs gap-1">
+          {statusTab === 'completed' && (
+            <Button size="sm" variant="destructive" onClick={handleClearAllCompleted} className="h-7 text-xs gap-1">
               <Trash2 className="h-3 w-3" /> Clear All Completed
             </Button>
           )}
-          {statusTab === 'cancelled' && filteredOrders.length > 0 && (
-            <Button size="sm" variant="outline" onClick={handleClearAllCancelled} className="h-7 text-xs gap-1">
+          {statusTab === 'cancelled' && (
+            <Button size="sm" variant="destructive" onClick={handleClearAllCancelled} className="h-7 text-xs gap-1">
               <Trash2 className="h-3 w-3" /> Clear All Cancelled
             </Button>
           )}

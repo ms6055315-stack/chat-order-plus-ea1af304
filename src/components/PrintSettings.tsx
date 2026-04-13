@@ -8,6 +8,8 @@ export interface PrintConfig {
   billWidth: number;
   billFontSize: number;
   billHeaderSize: number;
+  billItemSize: number;
+  billTotalSize: number;
   billShowTax: boolean;
   billTaxPercent: number;
   billShopName: string;
@@ -16,18 +18,25 @@ export interface PrintConfig {
   billFooter: string;
   billBold: boolean;
   billItalic: boolean;
+  billHeaderAlign: 'left' | 'center' | 'right';
+  billItemAlign: 'left' | 'center' | 'right';
   tokenWidth: number;
   tokenFontSize: number;
   tokenHeaderSize: number;
   tokenIdSize: number;
+  tokenItemSize: number;
   tokenBold: boolean;
   tokenItalic: boolean;
+  waMessageTemplate: string;
+  waDeliveryTemplate: string;
 }
 
 const DEFAULT_CONFIG: PrintConfig = {
   billWidth: 80,
   billFontSize: 13,
   billHeaderSize: 18,
+  billItemSize: 12,
+  billTotalSize: 16,
   billShowTax: false,
   billTaxPercent: 0,
   billShopName: 'RABBANI FAST FOOD',
@@ -36,12 +45,17 @@ const DEFAULT_CONFIG: PrintConfig = {
   billFooter: 'Thank you! Visit again!',
   billBold: true,
   billItalic: false,
+  billHeaderAlign: 'center',
+  billItemAlign: 'left',
   tokenWidth: 80,
   tokenFontSize: 14,
   tokenHeaderSize: 18,
   tokenIdSize: 24,
+  tokenItemSize: 13,
   tokenBold: true,
   tokenItalic: false,
+  waMessageTemplate: '*RABBANI Fast Food* 🍔\n\nOrder: {orderId}\n\n{items}\n\n*Total: Rs.{total}*\n⏰ Estimated Time: 35-40 minutes\n\nThank you! 🙏',
+  waDeliveryTemplate: '*RABBANI Fast Food* 🍔\n\nDelivery Order: {orderId}\nCustomer: {customerName}\nAddress: {address}\nPhone: {phone}\n\n{items}\n\nSubtotal: Rs.{subtotal}\nDelivery: Rs.{deliveryCharges}\n*Total: Rs.{total}*\n⏰ Estimated Time: 35-40 minutes\n\nThank you! 🙏',
 };
 
 const STORAGE_KEY = 'rabbani_print_config';

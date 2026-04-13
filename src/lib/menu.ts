@@ -51,7 +51,7 @@ export interface Customer {
 export const CATEGORIES = [
   'All', 'Zinger Burger', 'Beef Burger', 'Chicken Burger', 'Broast',
   'Bar B.Q', 'Rolls', 'Boti Plate', 'Kabab', 'Sandwiches',
-  'Fries', 'Extra'
+  'Fries', 'Shawarma', 'Pizza', 'Cold Drinks', 'Extra'
 ];
 
 export const DEFAULT_MENU_ITEMS: MenuItem[] = [
@@ -136,4 +136,17 @@ export const DEFAULT_MENU_ITEMS: MenuItem[] = [
   { id: 'ex7', name: 'Extra Cheese', price: 50, category: 'Extra' },
   { id: 'ex8', name: 'Extra Mayo Sauce', price: 50, category: 'Extra' },
   { id: 'ex9', name: 'Chatni', price: 30, category: 'Extra' },
+  // Shawarma
+  { id: 'sh1', name: 'Shawarma Large', price: 150, category: 'Shawarma' },
+  { id: 'sh2', name: 'Shawarma', price: 180, category: 'Shawarma' },
+  // Pizza
+  { id: 'pz1', name: 'Classic Pizza Small', price: 450, category: 'Pizza' },
+  { id: 'pz2', name: 'Classic Pizza Medium', price: 700, category: 'Pizza' },
+  { id: 'pz3', name: 'Classic Pizza Large', price: 950, category: 'Pizza' },
+  { id: 'pz4', name: 'Special Pizza Small', price: 550, category: 'Pizza' },
+  { id: 'pz5', name: 'Special Pizza Medium', price: 850, category: 'Pizza' },
+  { id: 'pz6', name: 'Special Pizza Large', price: 1150, category: 'Pizza' },
+  // Cold Drinks
+  { id: 'cd1', name: 'Pepsi', price: 80, category: 'Cold Drinks' },
+  { id: 'cd2', name: '7Up', price: 80, category: 'Cold Drinks' },
 ];

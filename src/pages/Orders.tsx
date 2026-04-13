@@ -84,15 +84,17 @@ export default function OrdersPage() {
   };
 
   const handleClearAllCompleted = () => {
-    const toDelete = filteredOrders.filter(o => o.status === 'completed');
-    if (toDelete.length > 0) downloadOrders(toDelete, `completed_${activeTab}`);
+    const todayStart = new Date(); todayStart.setHours(0, 0, 0, 0);
+    const toDelete = orders.filter(o => new Date(o.createdAt) >= todayStart && o.status === 'completed' && o.orderType !== 'self');
+    if (toDelete.length > 0) downloadOrders(toDelete, 'all_completed');
     toDelete.forEach(o => deleteOrder(o.id));
     toast({ title: `Cleared ${toDelete.length} completed orders (backup downloaded)` });
   };
 
   const handleClearAllCancelled = () => {
-    const toDelete = filteredOrders.filter(o => o.status === 'cancelled');
-    if (toDelete.length > 0) downloadOrders(toDelete, `cancelled_${activeTab}`);
+    const todayStart = new Date(); todayStart.setHours(0, 0, 0, 0);
+    const toDelete = orders.filter(o => new Date(o.createdAt) >= todayStart && o.status === 'cancelled' && o.orderType !== 'self');
+    if (toDelete.length > 0) downloadOrders(toDelete, 'all_cancelled');
     toDelete.forEach(o => deleteOrder(o.id));
     toast({ title: `Cleared ${toDelete.length} cancelled orders (backup downloaded)` });
   };

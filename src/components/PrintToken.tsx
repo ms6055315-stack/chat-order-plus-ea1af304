@@ -30,6 +30,7 @@ export function PrintToken({ order }: PrintTokenProps) {
   .line { border-top: 1px dashed #000; margin: 3px 0; }
   .header { font-size: ${c.tokenHeaderSize}px; font-weight: bold; }
   .big { font-size: ${c.tokenIdSize}px; font-weight: bold; }
+  .item { font-size: ${c.tokenItemSize}px; }
 </style></head><body>
 <div class="center header">${c.billShopName}</div>
 <div class="center bold big">${order.id}</div>
@@ -37,7 +38,7 @@ export function PrintToken({ order }: PrintTokenProps) {
 <div class="center bold">${order.orderType.toUpperCase()}</div>
 ${order.tableNumber ? `<div class="center">Table: ${order.tableNumber}</div>` : ''}
 <div class="line"></div>
-${order.items.map(i => `<div>${i.quantity}x ${i.name}</div>`).join('')}
+${order.items.map(i => `<div class="item">${i.quantity}x ${i.name}</div>`).join('')}
 <div class="line"></div>
 <div class="center bold" style="font-size:${c.tokenFontSize + 2}px">Total: Rs.${order.total}</div>
 </body></html>`;

@@ -32,13 +32,14 @@ export function PrintBill({ order }: PrintBillProps) {
   .bold { font-weight: bold; }
   .line { border-top: 1px dashed #000; margin: 3px 0; }
   table { width: 100%; border-collapse: collapse; }
-  td { padding: 1px 0; vertical-align: top; }
+  td { padding: 1px 0; vertical-align: top; font-size: ${c.billItemSize}px; }
   .right { text-align: right; }
-  .header { font-size: ${c.billHeaderSize}px; font-weight: bold; }
-  .total-line { font-size: ${c.billFontSize + 3}px; font-weight: bold; }
+  .header { font-size: ${c.billHeaderSize}px; font-weight: bold; text-align: ${c.billHeaderAlign}; }
+  .item-row { text-align: ${c.billItemAlign}; }
+  .total-line { font-size: ${c.billTotalSize}px; font-weight: bold; }
 </style></head><body>
-<div class="center header">${c.billShopName}</div>
-<div class="center" style="font-size:${c.billFontSize - 1}px">${c.billPhone1} | ${c.billPhone2}</div>
+<div class="header">${c.billShopName}</div>
+<div class="${c.billHeaderAlign === 'center' ? 'center' : ''}" style="font-size:${c.billFontSize - 1}px;text-align:${c.billHeaderAlign}">${c.billPhone1} | ${c.billPhone2}</div>
 <div class="line"></div>
 <div>Order: <b>${order.id}</b></div>
 <div>Type: <b>${order.orderType.toUpperCase()}</b></div>
@@ -50,7 +51,7 @@ ${order.customerAddress ? `<div>Address: ${order.customerAddress}</div>` : ''}
 <div class="line"></div>
 <table>
   <tr class="bold"><td>Item</td><td class="right">Qty</td><td class="right">Price</td></tr>
-  ${order.items.map(i => `<tr><td>${i.name}</td><td class="right">${i.quantity}</td><td class="right">Rs.${i.price * i.quantity}</td></tr>`).join('')}
+  ${order.items.map(i => `<tr class="item-row"><td>${i.name}</td><td class="right">${i.quantity}</td><td class="right">Rs.${i.price * i.quantity}</td></tr>`).join('')}
 </table>
 <div class="line"></div>
 <div class="right">Subtotal: Rs.${order.subtotal}</div>

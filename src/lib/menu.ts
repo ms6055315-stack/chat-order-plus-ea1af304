@@ -108,14 +108,14 @@ export const DEFAULT_MENU_ITEMS: MenuItem[] = [
   { id: 'rl12', name: 'Rabbani Special Roll', price: 390, category: 'Rolls' },
   { id: 'rl13', name: 'Rabbani Special Cheese Roll', price: 440, category: 'Rolls' },
   // Boti Plate
-  { id: 'bp1', name: 'Beef Boti Plate', price: 600, category: 'Boti Plate' },
-  { id: 'bp2', name: 'Beef Behari Boti Plate', price: 620, category: 'Boti Plate' },
-  { id: 'bp3', name: 'Chicken Boti Plate', price: 620, category: 'Boti Plate' },
-  { id: 'bp4', name: 'Chicken Malai Boti Plate', price: 570, category: 'Boti Plate' },
+  { id: 'bp1', name: 'Beef Boti Plate', price: 600, category: 'Boti Plate', variants: [{ id: 'bp1-half', name: 'Beef Boti Half', price: 300 }] },
+  { id: 'bp2', name: 'Beef Behari Boti Plate', price: 620, category: 'Boti Plate', variants: [{ id: 'bp2-half', name: 'Beef Behari Boti Half', price: 310 }] },
+  { id: 'bp3', name: 'Chicken Boti Plate', price: 620, category: 'Boti Plate', variants: [{ id: 'bp3-half', name: 'Chicken Boti Half', price: 310 }] },
+  { id: 'bp4', name: 'Chicken Malai Boti Plate', price: 570, category: 'Boti Plate', variants: [{ id: 'bp4-half', name: 'Chicken Malai Boti Half', price: 285 }] },
   // Kabab
-  { id: 'kb1', name: 'Beef Seekh Kabab', price: 520, category: 'Kabab' },
-  { id: 'kb2', name: 'Beef Gola Kabab', price: 520, category: 'Kabab' },
-  { id: 'kb3', name: 'Reshmi Kabab', price: 540, category: 'Kabab' },
+  { id: 'kb1', name: 'Beef Seekh Kabab', price: 520, category: 'Kabab', variants: [{ id: 'kb1-pc', name: 'Beef Seekh Kabab (1 Pc)', price: 130 }] },
+  { id: 'kb2', name: 'Beef Gola Kabab', price: 520, category: 'Kabab', variants: [{ id: 'kb2-pc', name: 'Beef Gola Kabab (1 Pc)', price: 130 }] },
+  { id: 'kb3', name: 'Reshmi Kabab', price: 540, category: 'Kabab', variants: [{ id: 'kb3-pc', name: 'Reshmi Kabab (1 Pc)', price: 135 }] },
   // Sandwiches
   { id: 'sw1', name: 'Chicken Sandwich', price: 350, category: 'Sandwiches' },
   { id: 'sw2', name: 'Chicken Cheese Sandwich', price: 480, category: 'Sandwiches' },
@@ -154,6 +154,13 @@ export const DEFAULT_MENU_ITEMS: MenuItem[] = [
   { id: 'pz5', name: 'Special Pizza Medium', price: 850, category: 'Pizza' },
   { id: 'pz6', name: 'Special Pizza Large', price: 1150, category: 'Pizza' },
   // Cold Drinks
-  { id: 'cd1', name: 'Pepsi', price: 80, category: 'Cold Drinks' },
-  { id: 'cd2', name: '7Up', price: 80, category: 'Cold Drinks' },
+  { id: 'cd1', name: 'Pepsi', price: 80, category: 'Cold Drinks', variants: [{ id: 'cd1-300', name: 'Pepsi 300ml', price: 80 }, { id: 'cd1-500', name: 'Pepsi 500ml', price: 120 }, { id: 'cd1-1500', name: 'Pepsi 1.5L', price: 200 }] },
+  { id: 'cd2', name: '7Up', price: 80, category: 'Cold Drinks', variants: [{ id: 'cd2-300', name: '7Up 300ml', price: 80 }, { id: 'cd2-500', name: '7Up 500ml', price: 120 }, { id: 'cd2-1500', name: '7Up 1.5L', price: 200 }] },
+  { id: 'cd3', name: 'Sprite', price: 80, category: 'Cold Drinks', variants: [{ id: 'cd3-300', name: 'Sprite 300ml', price: 80 }, { id: 'cd3-500', name: 'Sprite 500ml', price: 120 }, { id: 'cd3-1500', name: 'Sprite 1.5L', price: 200 }] },
+  // Bar B.Q Pieces
+  { id: 'bq1', name: 'Chicken Tikka Leg', price: 370, category: 'Bar B.Q', variants: [{ id: 'bq1-pc', name: 'Chicken Tikka (1 Pc)', price: 185 }] },
+  { id: 'bq2', name: 'Chicken Tikka Chest', price: 460, category: 'Bar B.Q', variants: [{ id: 'bq2-pc', name: 'Chicken Tikka Chest (1 Pc)', price: 230 }] },
+  { id: 'bq3', name: 'Chicken Behari Tikka', price: 420, category: 'Bar B.Q', variants: [{ id: 'bq3-pc', name: 'Chicken Behari (1 Pc)', price: 210 }] },
+  { id: 'bq4', name: 'Chick. Malai Tikka Chest', price: 450, category: 'Bar B.Q', variants: [{ id: 'bq4-pc', name: 'Malai Tikka (1 Pc)', price: 225 }] },
+  { id: 'bq5', name: 'Behari Tikka Leg', price: 380, category: 'Bar B.Q', variants: [{ id: 'bq5-pc', name: 'Behari Tikka (1 Pc)', price: 190 }] },
 ];

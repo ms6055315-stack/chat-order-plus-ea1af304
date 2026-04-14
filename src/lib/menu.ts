@@ -1,9 +1,16 @@
+export interface MenuItemVariant {
+  id: string;
+  name: string;
+  price: number;
+}
+
 export interface MenuItem {
   id: string;
   name: string;
   price: number;
   category: string;
   image?: string;
+  variants?: MenuItemVariant[];
 }
 
 export interface CartItem extends MenuItem {

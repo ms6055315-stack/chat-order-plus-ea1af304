@@ -85,19 +85,19 @@ export default function OrdersPage() {
   };
 
   const handleClearAllCompleted = () => {
-    const todayStart = new Date(); todayStart.setHours(0, 0, 0, 0);
-    const toDelete = orders.filter(o => new Date(o.createdAt) >= todayStart && o.status === 'completed' && o.orderType !== 'self');
-    if (toDelete.length > 0) downloadOrders(toDelete, 'all_completed');
+    const toDelete = orders.filter(o => o.status === 'completed' && o.orderType !== 'self');
+    if (toDelete.length === 0) { toast({ title: 'No completed orders to clear' }); return; }
+    downloadOrders(toDelete, 'all_completed');
     toDelete.forEach(o => deleteOrder(o.id));
-    toast({ title: `Cleared ${toDelete.length} completed orders (backup downloaded)` });
+    toast({ title: `Cleared ${toDelete.length} completed orders from all categories` });
   };
 
   const handleClearAllCancelled = () => {
-    const todayStart = new Date(); todayStart.setHours(0, 0, 0, 0);
-    const toDelete = orders.filter(o => new Date(o.createdAt) >= todayStart && o.status === 'cancelled' && o.orderType !== 'self');
-    if (toDelete.length > 0) downloadOrders(toDelete, 'all_cancelled');
+    const toDelete = orders.filter(o => o.status === 'cancelled' && o.orderType !== 'self');
+    if (toDelete.length === 0) { toast({ title: 'No cancelled orders to clear' }); return; }
+    downloadOrders(toDelete, 'all_cancelled');
     toDelete.forEach(o => deleteOrder(o.id));
-    toast({ title: `Cleared ${toDelete.length} cancelled orders (backup downloaded)` });
+    toast({ title: `Cleared ${toDelete.length} cancelled orders from all categories` });
   };
 
   const handleDownloadAll = () => {
@@ -199,16 +199,12 @@ export default function OrdersPage() {
           <Button size="sm" variant="outline" onClick={handleDownloadAll} className="h-7 text-xs gap-1">
             <Download className="h-3 w-3" /> Download All
           </Button>
-          {statusTab === 'completed' && (
-            <Button size="sm" variant="destructive" onClick={handleClearAllCompleted} className="h-7 text-xs gap-1">
-              <Trash2 className="h-3 w-3" /> Clear All Completed
-            </Button>
-          )}
-          {statusTab === 'cancelled' && (
-            <Button size="sm" variant="destructive" onClick={handleClearAllCancelled} className="h-7 text-xs gap-1">
-              <Trash2 className="h-3 w-3" /> Clear All Cancelled
-            </Button>
-          )}
+          <Button size="sm" variant="destructive" onClick={handleClearAllCompleted} className="h-7 text-xs gap-1">
+            <Trash2 className="h-3 w-3" /> Clear All Completed
+          </Button>
+          <Button size="sm" variant="destructive" onClick={handleClearAllCancelled} className="h-7 text-xs gap-1">
+            <Trash2 className="h-3 w-3" /> Clear All Cancelled
+          </Button>
         </div>
       </header>
 

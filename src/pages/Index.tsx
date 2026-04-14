@@ -20,8 +20,9 @@ import { AIAgentPanel, AIAgentButton } from '@/components/AIAgentPanel';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
-import { Phone, BarChart3, ClipboardList, Sun, Moon, Plus, X, Clock, MessageSquare, User } from 'lucide-react';
+import { Phone, BarChart3, ClipboardList, Sun, Moon, Plus, X, Clock, MessageSquare, User, Store } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
+import { loadPOSConfig } from '@/pages/POSSettings';
 
 const Index = () => {
   const navigate = useNavigate();
@@ -55,7 +56,7 @@ const Index = () => {
   });
 
   const agent = useAIAgent();
-
+  const posConfig = loadPOSConfig();
   const handleItemClick = (item: MenuItem) => {
     if (!isDayOpen) {
       toast({ title: 'Day not started', description: 'Please start the day first!', variant: 'destructive' });
@@ -210,8 +211,9 @@ const Index = () => {
       {/* Header */}
       <header className="bg-card border-b border-border p-2 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <h1 className="text-lg font-bold text-primary tracking-tight">RABBANI</h1>
-          <span className="text-xs text-muted-foreground">Fast Food POS</span>
+          {posConfig.shopLogo && <img src={posConfig.shopLogo} alt="Logo" className="w-8 h-8 rounded object-contain" />}
+          <h1 className="text-lg font-bold text-primary tracking-tight">{posConfig.shopName}</h1>
+          <span className="text-xs text-muted-foreground">{posConfig.shopTagline}</span>
         </div>
 
         <div className="flex items-center gap-1.5 flex-wrap">
@@ -230,6 +232,9 @@ const Index = () => {
           </Button>
           <Button variant="outline" size="sm" onClick={() => navigate('/whatsapp-settings')} className="gap-1 h-8 text-xs">
             <MessageSquare className="h-3.5 w-3.5" /> WA
+          </Button>
+          <Button variant="outline" size="sm" onClick={() => navigate('/pos-settings')} className="gap-1 h-8 text-xs">
+            <Store className="h-3.5 w-3.5" /> POS
           </Button>
           <PrintSettings />
 
@@ -253,7 +258,7 @@ const Index = () => {
           )}
           <div className="flex items-center gap-1 text-xs text-muted-foreground">
             <Phone className="h-3 w-3" />
-            <span>0307-1203000</span>
+            <span>{posConfig.shopPhone}</span>
           </div>
         </div>
       </header>

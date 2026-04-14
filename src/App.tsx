@@ -7,6 +7,7 @@ import OrdersPage from "./pages/Orders";
 import SelfServicePage from "./pages/SelfService";
 import ReportsPage from "./pages/Reports";
 import WhatsAppSettingsPage from "./pages/WhatsAppSettings";
+import POSSettingsPage from "./pages/POSSettings";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -22,6 +23,7 @@ const App = () => (
           <Route path="/self-service" element={<SelfServicePage />} />
           <Route path="/reports" element={<ReportsPage />} />
           <Route path="/whatsapp-settings" element={<WhatsAppSettingsPage />} />
+          <Route path="/pos-settings" element={<POSSettingsPage />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

@@ -87,12 +87,7 @@ export const DEFAULT_MENU_ITEMS: MenuItem[] = [
   { id: 'br6', name: 'Broast Spicy Chest', price: 480, category: 'Broast' },
   { id: 'br7', name: 'Half Broast', price: 848, category: 'Broast' },
   { id: 'br8', name: 'Full Broast', price: 1660, category: 'Broast' },
-  // Bar B.Q
-  { id: 'bq1', name: 'Chicken Tikka Leg', price: 370, category: 'Bar B.Q' },
-  { id: 'bq2', name: 'Chicken Tikka Chest', price: 460, category: 'Bar B.Q' },
-  { id: 'bq3', name: 'Chicken Behari Tikka', price: 420, category: 'Bar B.Q' },
-  { id: 'bq4', name: 'Chick. Malai Tikka Chest', price: 450, category: 'Bar B.Q' },
-  { id: 'bq5', name: 'Behari Tikka Leg', price: 380, category: 'Bar B.Q' },
+  // Bar B.Q (moved to bottom with variants)
   // Rolls
   { id: 'rl1', name: 'Kabab Roll', price: 200, category: 'Rolls' },
   { id: 'rl2', name: 'Chicken Chatni Roll', price: 220, category: 'Rolls' },

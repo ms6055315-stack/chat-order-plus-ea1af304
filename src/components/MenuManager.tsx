@@ -180,11 +180,30 @@ export function MenuManager({ items, categories, onAddItem, onUpdateItem, onDele
                         }} />
                         {editImage && <img src={editImage} alt="" className="w-6 h-6 rounded object-cover" />}
                       </div>
+                      {/* Variants (Half/Pieces) */}
+                      <div className="bg-accent/50 rounded p-2 space-y-1">
+                        <p className="text-[10px] font-medium flex items-center gap-1"><Layers className="h-3 w-3" /> Variants (Half / Pieces)</p>
+                        {editVariants.map(v => (
+                          <div key={v.id} className="flex items-center gap-1">
+                            <Input value={v.name} onChange={e => setEditVariants(prev => prev.map(x => x.id === v.id ? { ...x, name: e.target.value } : x))} className="flex-1 h-6 text-[10px]" />
+                            <Input value={v.price} onChange={e => setEditVariants(prev => prev.map(x => x.id === v.id ? { ...x, price: Number(e.target.value) || 0 } : x))} type="number" className="w-16 h-6 text-[10px]" />
+                            <button onClick={() => removeVariant(v.id)} className="text-destructive"><Trash2 className="h-3 w-3" /></button>
+                          </div>
+                        ))}
+                        <div className="flex items-center gap-1">
+                          <Input value={newVarName} onChange={e => setNewVarName(e.target.value)} placeholder="Variant name" className="flex-1 h-6 text-[10px]" />
+                          <Input value={newVarPrice} onChange={e => setNewVarPrice(e.target.value)} type="number" placeholder="Price" className="w-16 h-6 text-[10px]" />
+                          <button onClick={addVariant} className="text-primary"><Plus className="h-3 w-3" /></button>
+                        </div>
+                      </div>
                     </div>
                   ) : (
                     <div className="flex items-center gap-2 text-sm">
                       {item.image && <img src={item.image} alt="" className="w-6 h-6 rounded object-cover" />}
                       <span className="flex-1 text-xs">{item.name}</span>
+                      {item.variants && item.variants.length > 0 && (
+                        <span className="text-[9px] text-muted-foreground bg-accent px-1 rounded">{item.variants.length} variants</span>
+                      )}
                       <span className="text-muted-foreground text-[10px]">{item.category}</span>
                       <span className="font-bold text-xs">Rs.{item.price}</span>
                       <button onClick={() => startEdit(item)} className="text-primary"><Edit2 className="h-3.5 w-3.5" /></button>

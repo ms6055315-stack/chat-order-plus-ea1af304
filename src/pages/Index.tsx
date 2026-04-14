@@ -233,6 +233,9 @@ const Index = () => {
           <Button variant="outline" size="sm" onClick={() => navigate('/whatsapp-settings')} className="gap-1 h-8 text-xs">
             <MessageSquare className="h-3.5 w-3.5" /> WA
           </Button>
+          <Button variant="outline" size="sm" onClick={() => navigate('/pos-settings')} className="gap-1 h-8 text-xs">
+            <Store className="h-3.5 w-3.5" /> POS
+          </Button>
           <PrintSettings />
 
           {!isDayOpen ? (
@@ -255,7 +258,7 @@ const Index = () => {
           )}
           <div className="flex items-center gap-1 text-xs text-muted-foreground">
             <Phone className="h-3 w-3" />
-            <span>0307-1203000</span>
+            <span>{posConfig.shopPhone}</span>
           </div>
         </div>
       </header>

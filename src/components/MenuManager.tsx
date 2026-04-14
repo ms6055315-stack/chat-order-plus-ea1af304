@@ -1,9 +1,9 @@
 import { useState } from 'react';
-import { MenuItem, CATEGORIES } from '@/lib/menu';
+import { MenuItem, MenuItemVariant, CATEGORIES } from '@/lib/menu';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
-import { Settings, Plus, Trash2, RotateCcw, Edit2, Save, X, FolderPlus, Image } from 'lucide-react';
+import { Settings, Plus, Trash2, RotateCcw, Edit2, Save, X, FolderPlus, Image, Layers } from 'lucide-react';
 
 interface MenuManagerProps {
   items: MenuItem[];
@@ -30,10 +30,15 @@ export function MenuManager({ items, categories, onAddItem, onUpdateItem, onDele
   const [editPrice, setEditPrice] = useState('');
   const [editCategory, setEditCategory] = useState('');
   const [editImage, setEditImage] = useState('');
+  const [editVariants, setEditVariants] = useState<MenuItemVariant[]>([]);
 
   // Add category state
   const [showAddCat, setShowAddCat] = useState(false);
   const [newCatName, setNewCatName] = useState('');
+
+  // New variant inputs
+  const [newVarName, setNewVarName] = useState('');
+  const [newVarPrice, setNewVarPrice] = useState('');
 
   const handleAdd = () => {
     if (!name || !price) return;
@@ -49,12 +54,26 @@ export function MenuManager({ items, categories, onAddItem, onUpdateItem, onDele
     setEditPrice(String(item.price));
     setEditCategory(item.category);
     setEditImage(item.image || '');
+    setEditVariants(item.variants ? [...item.variants] : []);
+    setNewVarName('');
+    setNewVarPrice('');
   };
 
   const saveEdit = () => {
     if (!editId || !editName || !editPrice) return;
-    onUpdateItem(editId, { name: editName, price: Number(editPrice), category: editCategory, image: editImage || undefined });
+    onUpdateItem(editId, { name: editName, price: Number(editPrice), category: editCategory, image: editImage || undefined, variants: editVariants.length > 0 ? editVariants : undefined });
     setEditId(null);
+  };
+
+  const addVariant = () => {
+    if (!newVarName || !newVarPrice) return;
+    setEditVariants(prev => [...prev, { id: `var-${Date.now()}`, name: newVarName, price: Number(newVarPrice) }]);
+    setNewVarName('');
+    setNewVarPrice('');
+  };
+
+  const removeVariant = (varId: string) => {
+    setEditVariants(prev => prev.filter(v => v.id !== varId));
   };
 
   const cancelEdit = () => setEditId(null);

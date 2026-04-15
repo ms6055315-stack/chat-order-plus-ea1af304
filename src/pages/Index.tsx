@@ -10,8 +10,10 @@ import { useCart } from '@/hooks/useCart';
 import { useOrders } from '@/hooks/useOrders';
 import { useMenuItems } from '@/hooks/useMenuItems';
 import { useCustomers } from '@/hooks/useCustomers';
+import { useStaffAndTables } from '@/hooks/useStaffAndTables';
 import { MenuManager } from '@/components/MenuManager';
 import { CustomerManager } from '@/components/CustomerManager';
+import { StaffTableManager } from '@/components/StaffTableManager';
 import { Order, MenuItem } from '@/lib/menu';
 import { useVoiceCommand } from '@/hooks/useVoiceCommand';
 import { VoiceCommandButton } from '@/components/VoiceCommandButton';
@@ -27,9 +29,10 @@ import { loadPOSConfig } from '@/pages/POSSettings';
 const Index = () => {
   const navigate = useNavigate();
   const cart = useCart();
-  const { isDayOpen, currentSession, startDay, endDay, addOrder, getTodayStats, clearNonSelfOrders } = useOrders();
+  const { isDayOpen, currentSession, startDay, endDay, addOrder, getTodayStats, clearNonSelfOrders, orders } = useOrders();
   const menu = useMenuItems();
   const { customers, searchByPhone, saveCustomer, updateCustomer, deleteCustomer } = useCustomers();
+  const staff = useStaffAndTables();
   const [phoneSuggestions, setPhoneSuggestions] = useState<ReturnType<typeof searchByPhone>>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const phoneInputRef = useRef<HTMLDivElement>(null);
@@ -188,6 +191,9 @@ const Index = () => {
   });
 
   const stats = getTodayStats();
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const occupiedTables = orders.filter(o => o.orderType === 'dine-in' && o.status === 'pending' && new Date(o.createdAt) >= today).map(o => o.tableNumber).filter(Boolean) as string[];
   const previewOrder: Order | null = cart.items.length > 0 ? {
     id: `PREVIEW`,
     items: cart.items,
@@ -222,6 +228,10 @@ const Index = () => {
           <AIAgentButton isActive={agent.isAgentMode} onClick={() => agent.setIsAgentMode(!agent.isAgentMode)} />
           <MenuManager items={menu.items} categories={menu.categories} onAddItem={menu.addItem} onUpdateItem={menu.updateItem} onDeleteItem={menu.deleteItem} onReset={menu.resetToDefault} onAddCategory={menu.addCategory} />
           <CustomerManager customers={customers} onUpdate={updateCustomer} onDelete={deleteCustomer} />
+          <StaffTableManager tables={staff.tables} waiters={staff.waiters} riders={staff.riders}
+            onAddTable={staff.addTable} onRemoveTable={staff.removeTable} onEditTable={staff.editTable}
+            onAddWaiter={staff.addWaiter} onRemoveWaiter={staff.removeWaiter} onEditWaiter={staff.editWaiter}
+            onAddRider={staff.addRider} onRemoveRider={staff.removeRider} onEditRider={staff.editRider} />
           <Button variant="outline" size="sm" onClick={() => navigate('/orders')} className="gap-1 h-8 text-xs">
             <ClipboardList className="h-3.5 w-3.5" /> Orders
           </Button>
@@ -304,8 +314,38 @@ const Index = () => {
 
             {cart.orderType === 'dine-in' && (
               <div className="space-y-1">
-                <Input placeholder="Table Number" value={cart.tableNumber} onChange={e => cart.setTableNumber(e.target.value)} className="h-7 text-xs" />
-                <Input placeholder="Waiter (optional)" value={cart.waiterName} onChange={e => cart.setWaiterName(e.target.value)} className="h-7 text-xs" />
+                {/* Table selector */}
+                <div className="flex flex-wrap gap-1">
+                  {staff.tables.map(t => {
+                    const isOccupied = occupiedTables.includes(t) && cart.tableNumber !== t;
+                    return (
+                      <button key={t} disabled={isOccupied}
+                        onClick={() => cart.setTableNumber(t)}
+                        className={`px-2 py-1 text-[10px] rounded border transition-colors ${
+                          cart.tableNumber === t ? 'bg-primary text-primary-foreground border-primary' :
+                          isOccupied ? 'bg-destructive/10 text-destructive border-destructive/30 cursor-not-allowed opacity-60' :
+                          'bg-accent border-border hover:bg-muted'
+                        }`}
+                      >
+                        T{t}{isOccupied ? ' ●' : ''}
+                      </button>
+                    );
+                  })}
+                </div>
+                {/* Waiter selector */}
+                {staff.waiters.length > 0 ? (
+                  <div className="flex flex-wrap gap-1">
+                    {staff.waiters.map(w => (
+                      <button key={w} onClick={() => cart.setWaiterName(w)}
+                        className={`px-2 py-1 text-[10px] rounded border transition-colors ${
+                          cart.waiterName === w ? 'bg-primary text-primary-foreground border-primary' : 'bg-accent border-border hover:bg-muted'
+                        }`}
+                      >{w}</button>
+                    ))}
+                  </div>
+                ) : (
+                  <Input placeholder="Waiter (optional)" value={cart.waiterName} onChange={e => cart.setWaiterName(e.target.value)} className="h-7 text-xs" />
+                )}
               </div>
             )}
 
@@ -329,7 +369,20 @@ const Index = () => {
                 {cart.orderType === 'delivery' && (
                   <>
                     <Input placeholder="Address" value={cart.customerAddress} onChange={e => cart.setCustomerAddress(e.target.value)} className="h-7 text-xs" />
-                    <Input placeholder="Rider (optional)" value={cart.riderName} onChange={e => cart.setRiderName(e.target.value)} className="h-7 text-xs" />
+                    {/* Rider selector */}
+                    {staff.riders.length > 0 ? (
+                      <div className="flex flex-wrap gap-1">
+                        {staff.riders.map(r => (
+                          <button key={r} onClick={() => cart.setRiderName(r)}
+                            className={`px-2 py-1 text-[10px] rounded border transition-colors ${
+                              cart.riderName === r ? 'bg-primary text-primary-foreground border-primary' : 'bg-accent border-border hover:bg-muted'
+                            }`}
+                          >{r}</button>
+                        ))}
+                      </div>
+                    ) : (
+                      <Input placeholder="Rider (optional)" value={cart.riderName} onChange={e => cart.setRiderName(e.target.value)} className="h-7 text-xs" />
+                    )}
                   </>
                 )}
               </div>

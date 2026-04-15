@@ -89,6 +89,14 @@ export function useOrders() {
     saveOrders(updated);
   }, [orders]);
 
+  const clearNonSelfOrders = useCallback(() => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const updated = orders.filter(o => o.orderType === 'self' || new Date(o.createdAt) < today);
+    setOrders(updated);
+    saveOrders(updated);
+  }, [orders]);
+
   const getTodayStats = useCallback(() => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -115,5 +123,5 @@ export function useOrders() {
     };
   }, [orders]);
 
-  return { orders, isDayOpen, currentSession, startDay, endDay, addOrder, updateOrderStatus, updateOrder, deleteOrder, getTodayStats };
+  return { orders, isDayOpen, currentSession, startDay, endDay, addOrder, updateOrderStatus, updateOrder, deleteOrder, clearNonSelfOrders, getTodayStats };
 }

@@ -315,8 +315,38 @@ const Index = () => {
 
             {cart.orderType === 'dine-in' && (
               <div className="space-y-1">
-                <Input placeholder="Table Number" value={cart.tableNumber} onChange={e => cart.setTableNumber(e.target.value)} className="h-7 text-xs" />
-                <Input placeholder="Waiter (optional)" value={cart.waiterName} onChange={e => cart.setWaiterName(e.target.value)} className="h-7 text-xs" />
+                {/* Table selector */}
+                <div className="flex flex-wrap gap-1">
+                  {staff.tables.map(t => {
+                    const isOccupied = occupiedTables.includes(t) && cart.tableNumber !== t;
+                    return (
+                      <button key={t} disabled={isOccupied}
+                        onClick={() => cart.setTableNumber(t)}
+                        className={`px-2 py-1 text-[10px] rounded border transition-colors ${
+                          cart.tableNumber === t ? 'bg-primary text-primary-foreground border-primary' :
+                          isOccupied ? 'bg-destructive/10 text-destructive border-destructive/30 cursor-not-allowed opacity-60' :
+                          'bg-accent border-border hover:bg-muted'
+                        }`}
+                      >
+                        T{t}{isOccupied ? ' ●' : ''}
+                      </button>
+                    );
+                  })}
+                </div>
+                {/* Waiter selector */}
+                {staff.waiters.length > 0 ? (
+                  <div className="flex flex-wrap gap-1">
+                    {staff.waiters.map(w => (
+                      <button key={w} onClick={() => cart.setWaiterName(w)}
+                        className={`px-2 py-1 text-[10px] rounded border transition-colors ${
+                          cart.waiterName === w ? 'bg-primary text-primary-foreground border-primary' : 'bg-accent border-border hover:bg-muted'
+                        }`}
+                      >{w}</button>
+                    ))}
+                  </div>
+                ) : (
+                  <Input placeholder="Waiter (optional)" value={cart.waiterName} onChange={e => cart.setWaiterName(e.target.value)} className="h-7 text-xs" />
+                )}
               </div>
             )}
 
@@ -340,7 +370,20 @@ const Index = () => {
                 {cart.orderType === 'delivery' && (
                   <>
                     <Input placeholder="Address" value={cart.customerAddress} onChange={e => cart.setCustomerAddress(e.target.value)} className="h-7 text-xs" />
-                    <Input placeholder="Rider (optional)" value={cart.riderName} onChange={e => cart.setRiderName(e.target.value)} className="h-7 text-xs" />
+                    {/* Rider selector */}
+                    {staff.riders.length > 0 ? (
+                      <div className="flex flex-wrap gap-1">
+                        {staff.riders.map(r => (
+                          <button key={r} onClick={() => cart.setRiderName(r)}
+                            className={`px-2 py-1 text-[10px] rounded border transition-colors ${
+                              cart.riderName === r ? 'bg-primary text-primary-foreground border-primary' : 'bg-accent border-border hover:bg-muted'
+                            }`}
+                          >{r}</button>
+                        ))}
+                      </div>
+                    ) : (
+                      <Input placeholder="Rider (optional)" value={cart.riderName} onChange={e => cart.setRiderName(e.target.value)} className="h-7 text-xs" />
+                    )}
                   </>
                 )}
               </div>

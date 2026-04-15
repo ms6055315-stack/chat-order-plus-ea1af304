@@ -1,27 +1,20 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useOrders } from '@/hooks/useOrders';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { ArrowLeft, Search } from 'lucide-react';
-
-const SELF_ORDERS_KEY = 'rabbani_self_orders';
-
-function loadSelfOrders() {
-  try {
-    const d = localStorage.getItem(SELF_ORDERS_KEY);
-    return d ? JSON.parse(d) : [];
-  } catch { return []; }
-}
+import { ArrowLeft, Search, Printer } from 'lucide-react';
+import { loadPOSConfig } from '@/pages/POSSettings';
 
 export default function ReportsPage() {
   const navigate = useNavigate();
   const { orders } = useOrders();
-  const selfOrders = loadSelfOrders();
   const [categorySearch, setCategorySearch] = useState('');
   const [tab, setTab] = useState<'summary' | 'category'>('summary');
+  const posConfig = loadPOSConfig();
 
-  const allOrders = [...orders, ...selfOrders.filter((s: any) => s.status === 'completed')];
+  // Exclude self-service orders from reports
+  const allOrders = orders.filter(o => o.orderType !== 'self');
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
@@ -35,7 +28,6 @@ export default function ReportsPage() {
     'takeout': completedToday.filter(o => o.orderType === 'takeout'),
     'delivery': completedToday.filter(o => o.orderType === 'delivery'),
     'car': completedToday.filter(o => o.orderType === 'car'),
-    'self': completedToday.filter(o => o.orderType === 'self'),
   };
 
   // Sales by category
@@ -56,6 +48,104 @@ export default function ReportsPage() {
     !categorySearch || cat.toLowerCase().includes(categorySearch.toLowerCase())
   ).sort((a, b) => b[1].totalRevenue - a[1].totalRevenue);
 
+  const printReport = () => {
+    const html = `
+      <html><head><title>Sales Report</title>
+      <style>
+        body { font-family: Arial, sans-serif; padding: 20px; font-size: 12px; }
+        h1 { font-size: 16px; margin-bottom: 4px; }
+        .subtitle { color: #666; font-size: 11px; margin-bottom: 16px; }
+        table { width: 100%; border-collapse: collapse; margin: 10px 0; }
+        th, td { border: 1px solid #ddd; padding: 6px 8px; text-align: left; }
+        th { background: #f5f5f5; font-weight: bold; }
+        .total-row { font-weight: bold; background: #f0f0f0; }
+        .section { margin: 16px 0; }
+        .section-title { font-size: 13px; font-weight: bold; margin-bottom: 8px; border-bottom: 1px solid #333; padding-bottom: 4px; }
+      </style></head><body>
+      <h1>${posConfig.shopName} - Sales Report</h1>
+      <div class="subtitle">${new Date().toLocaleDateString()} | ${new Date().toLocaleTimeString()}</div>
+      
+      <div class="section">
+        <div class="section-title">Summary</div>
+        <table>
+          <tr><td>Total Orders</td><td><strong>${completedToday.length}</strong></td></tr>
+          <tr><td>Total Sales</td><td><strong>Rs.${totalSales}</strong></td></tr>
+          <tr><td>Cancelled Orders</td><td>${cancelledToday.length}</td></tr>
+          <tr><td>Average Order</td><td>Rs.${completedToday.length ? Math.round(totalSales / completedToday.length) : 0}</td></tr>
+        </table>
+      </div>
+
+      <div class="section">
+        <div class="section-title">By Order Type</div>
+        <table>
+          <tr><th>Type</th><th>Orders</th><th>Sales</th></tr>
+          ${Object.entries(byType).map(([type, typeOrders]) => `
+            <tr><td style="text-transform:capitalize">${type}</td><td>${typeOrders.length}</td><td>Rs.${typeOrders.reduce((s, o) => s + o.total, 0)}</td></tr>
+          `).join('')}
+        </table>
+      </div>
+
+      <div class="section">
+        <div class="section-title">Sales by Category</div>
+        ${Object.entries(categoryMap).sort((a, b) => b[1].totalRevenue - a[1].totalRevenue).map(([cat, data]) => `
+          <table>
+            <tr class="total-row"><td colspan="3">${cat} — ${data.totalQty} items — Rs.${data.totalRevenue}</td></tr>
+            <tr><th>Item</th><th>Qty</th><th>Revenue</th></tr>
+            ${Object.values(data.items).sort((a, b) => b.revenue - a.revenue).map(item => `
+              <tr><td>${item.name}</td><td>${item.qty}</td><td>Rs.${item.revenue}</td></tr>
+            `).join('')}
+          </table>
+        `).join('')}
+      </div>
+
+      <div class="section">
+        <div class="section-title">All Orders</div>
+        <table>
+          <tr><th>ID</th><th>Type</th><th>Status</th><th>Total</th><th>Time</th></tr>
+          ${todayOrders.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()).map(o => `
+            <tr><td>${o.id}</td><td style="text-transform:capitalize">${o.orderType}</td><td>${o.status}</td><td>Rs.${o.total}</td><td>${new Date(o.createdAt).toLocaleTimeString()}</td></tr>
+          `).join('')}
+        </table>
+      </div>
+      </body></html>`;
+    const iframe = document.createElement('iframe');
+    iframe.style.display = 'none';
+    document.body.appendChild(iframe);
+    iframe.contentDocument?.write(html);
+    iframe.contentDocument?.close();
+    setTimeout(() => { iframe.contentWindow?.print(); setTimeout(() => iframe.remove(), 1000); }, 300);
+  };
+
+  const printCategory = (cat: string, data: typeof categoryMap[string]) => {
+    const html = `
+      <html><head><title>${cat} Report</title>
+      <style>
+        body { font-family: Arial, sans-serif; padding: 20px; font-size: 12px; }
+        h1 { font-size: 16px; margin-bottom: 4px; }
+        .subtitle { color: #666; font-size: 11px; margin-bottom: 16px; }
+        table { width: 100%; border-collapse: collapse; margin: 10px 0; }
+        th, td { border: 1px solid #ddd; padding: 6px 8px; text-align: left; }
+        th { background: #f5f5f5; font-weight: bold; }
+        .total-row { font-weight: bold; background: #f0f0f0; }
+      </style></head><body>
+      <h1>${posConfig.shopName} - ${cat}</h1>
+      <div class="subtitle">${new Date().toLocaleDateString()} | Total: ${data.totalQty} items | Rs.${data.totalRevenue}</div>
+      <table>
+        <tr><th>Item</th><th>Qty Sold</th><th>Revenue</th></tr>
+        ${Object.values(data.items).sort((a, b) => b.revenue - a.revenue).map(item => `
+          <tr><td>${item.name}</td><td>${item.qty}</td><td>Rs.${item.revenue}</td></tr>
+        `).join('')}
+        <tr class="total-row"><td>Total</td><td>${data.totalQty}</td><td>Rs.${data.totalRevenue}</td></tr>
+      </table>
+      </body></html>`;
+    const iframe = document.createElement('iframe');
+    iframe.style.display = 'none';
+    document.body.appendChild(iframe);
+    iframe.contentDocument?.write(html);
+    iframe.contentDocument?.close();
+    setTimeout(() => { iframe.contentWindow?.print(); setTimeout(() => iframe.remove(), 1000); }, 300);
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <header className="bg-card border-b border-border p-2 flex items-center gap-3">
@@ -67,12 +157,14 @@ export default function ReportsPage() {
           <Button variant={tab === 'summary' ? 'default' : 'outline'} size="sm" onClick={() => setTab('summary')} className="h-7 text-xs">Summary</Button>
           <Button variant={tab === 'category' ? 'default' : 'outline'} size="sm" onClick={() => setTab('category')} className="h-7 text-xs">Sales by Category</Button>
         </div>
+        <Button variant="outline" size="sm" onClick={printReport} className="ml-auto gap-1 h-7 text-xs">
+          <Printer className="h-3.5 w-3.5" /> Print Report
+        </Button>
       </header>
 
       <div className="p-4 space-y-4 max-w-4xl mx-auto">
         {tab === 'summary' && (
           <>
-            {/* Summary Cards */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
               <div className="bg-card border border-border rounded-lg p-4">
                 <p className="text-xs text-muted-foreground">Total Orders</p>
@@ -92,7 +184,6 @@ export default function ReportsPage() {
               </div>
             </div>
 
-            {/* By Type */}
             <div className="bg-card border border-border rounded-lg p-4">
               <h2 className="text-sm font-bold mb-3">By Order Type</h2>
               <div className="space-y-2">
@@ -108,7 +199,6 @@ export default function ReportsPage() {
               </div>
             </div>
 
-            {/* Recent Orders */}
             <div className="bg-card border border-border rounded-lg p-4">
               <h2 className="text-sm font-bold mb-3">Today's Orders</h2>
               <div className="space-y-1 max-h-96 overflow-y-auto">
@@ -141,9 +231,12 @@ export default function ReportsPage() {
                   <div key={cat} className="bg-card border border-border rounded-lg p-4">
                     <div className="flex justify-between items-center mb-2">
                       <h3 className="text-sm font-bold text-primary">{cat}</h3>
-                      <div className="flex gap-3 text-xs">
+                      <div className="flex gap-3 text-xs items-center">
                         <span className="text-muted-foreground">{data.totalQty} items sold</span>
                         <span className="font-bold text-secondary">Rs.{data.totalRevenue}</span>
+                        <Button variant="ghost" size="sm" onClick={() => printCategory(cat, data)} className="h-6 w-6 p-0">
+                          <Printer className="h-3 w-3" />
+                        </Button>
                       </div>
                     </div>
                     <div className="space-y-1">

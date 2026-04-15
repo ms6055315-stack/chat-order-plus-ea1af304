@@ -32,6 +32,7 @@ const Index = () => {
   const { isDayOpen, currentSession, startDay, endDay, addOrder, getTodayStats, clearNonSelfOrders } = useOrders();
   const menu = useMenuItems();
   const { customers, searchByPhone, saveCustomer, updateCustomer, deleteCustomer } = useCustomers();
+  const staff = useStaffAndTables();
   const [phoneSuggestions, setPhoneSuggestions] = useState<ReturnType<typeof searchByPhone>>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
   const phoneInputRef = useRef<HTMLDivElement>(null);

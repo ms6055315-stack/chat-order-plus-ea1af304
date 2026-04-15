@@ -27,7 +27,7 @@ import { loadPOSConfig } from '@/pages/POSSettings';
 const Index = () => {
   const navigate = useNavigate();
   const cart = useCart();
-  const { isDayOpen, currentSession, startDay, endDay, addOrder, getTodayStats } = useOrders();
+  const { isDayOpen, currentSession, startDay, endDay, addOrder, getTodayStats, clearNonSelfOrders } = useOrders();
   const menu = useMenuItems();
   const { customers, searchByPhone, saveCustomer, updateCustomer, deleteCustomer } = useCustomers();
   const [phoneSuggestions, setPhoneSuggestions] = useState<ReturnType<typeof searchByPhone>>([]);
@@ -159,9 +159,10 @@ const Index = () => {
     const cash = parseFloat(closingCash);
     if (isNaN(cash) || cash < 0) return;
     endDay(cash);
+    clearNonSelfOrders();
     setShowEndDayDialog(false);
     setClosingCash('');
-    toast({ title: 'Day ended!', description: 'Session closed' });
+    toast({ title: 'Day ended!', description: 'All orders cleared (except Self-Service)' });
   };
 
   agent.setCallbacks({

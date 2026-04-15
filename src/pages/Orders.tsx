@@ -87,17 +87,15 @@ export default function OrdersPage() {
   const handleClearAllCompleted = () => {
     const toDelete = orders.filter(o => o.status === 'completed' && o.orderType !== 'self');
     if (toDelete.length === 0) { toast({ title: 'No completed orders to clear' }); return; }
-    downloadOrders(toDelete, 'all_completed');
     toDelete.forEach(o => deleteOrder(o.id));
-    toast({ title: `Cleared ${toDelete.length} completed orders from all categories` });
+    toast({ title: `Cleared ${toDelete.length} completed orders` });
   };
 
   const handleClearAllCancelled = () => {
     const toDelete = orders.filter(o => o.status === 'cancelled' && o.orderType !== 'self');
     if (toDelete.length === 0) { toast({ title: 'No cancelled orders to clear' }); return; }
-    downloadOrders(toDelete, 'all_cancelled');
     toDelete.forEach(o => deleteOrder(o.id));
-    toast({ title: `Cleared ${toDelete.length} cancelled orders from all categories` });
+    toast({ title: `Cleared ${toDelete.length} cancelled orders` });
   };
 
   const handleDownloadAll = () => {

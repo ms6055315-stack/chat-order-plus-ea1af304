@@ -29,7 +29,7 @@ import { loadPOSConfig } from '@/pages/POSSettings';
 const Index = () => {
   const navigate = useNavigate();
   const cart = useCart();
-  const { isDayOpen, currentSession, startDay, endDay, addOrder, getTodayStats, clearNonSelfOrders } = useOrders();
+  const { isDayOpen, currentSession, startDay, endDay, addOrder, getTodayStats, clearNonSelfOrders, orders } = useOrders();
   const menu = useMenuItems();
   const { customers, searchByPhone, saveCustomer, updateCustomer, deleteCustomer } = useCustomers();
   const staff = useStaffAndTables();
@@ -193,7 +193,6 @@ const Index = () => {
   const stats = getTodayStats();
   const today = new Date();
   today.setHours(0, 0, 0, 0);
-  const { orders } = useOrders();
   const occupiedTables = orders.filter(o => o.orderType === 'dine-in' && o.status === 'pending' && new Date(o.createdAt) >= today).map(o => o.tableNumber).filter(Boolean) as string[];
   const previewOrder: Order | null = cart.items.length > 0 ? {
     id: `PREVIEW`,

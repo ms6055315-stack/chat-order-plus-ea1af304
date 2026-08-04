@@ -6,6 +6,8 @@ import { Settings } from 'lucide-react';
 
 export interface PrintConfig {
   billWidth: number;
+  billPrintWidth: number;
+  billHeight: number;
   billFontSize: number;
   billHeaderSize: number;
   billItemSize: number;
@@ -22,6 +24,8 @@ export interface PrintConfig {
   billItemAlign: 'left' | 'center' | 'right';
   billLogo: string;
   tokenWidth: number;
+  tokenPrintWidth: number;
+  tokenHeight: number;
   tokenFontSize: number;
   tokenHeaderSize: number;
   tokenIdSize: number;
@@ -34,6 +38,8 @@ export interface PrintConfig {
 
 const DEFAULT_CONFIG: PrintConfig = {
   billWidth: 80,
+  billPrintWidth: 72.1,
+  billHeight: 297,
   billFontSize: 13,
   billHeaderSize: 18,
   billItemSize: 12,
@@ -50,6 +56,8 @@ const DEFAULT_CONFIG: PrintConfig = {
   billItemAlign: 'left',
   billLogo: '',
   tokenWidth: 80,
+  tokenPrintWidth: 72.1,
+  tokenHeight: 120,
   tokenFontSize: 14,
   tokenHeaderSize: 18,
   tokenIdSize: 24,
@@ -59,6 +67,7 @@ const DEFAULT_CONFIG: PrintConfig = {
   waMessageTemplate: '*RABBANI Fast Food* 🍔\n\nOrder: {orderId}\n\n{items}\n\n*Total: Rs.{total}*\n⏰ Estimated Time: 35-40 minutes\n\nThank you! 🙏',
   waDeliveryTemplate: '*RABBANI Fast Food* 🍔\n\nDelivery Order: {orderId}\nCustomer: {customerName}\nAddress: {address}\nPhone: {phone}\n\n{items}\n\nSubtotal: Rs.{subtotal}\nDelivery: Rs.{deliveryCharges}\n*Total: Rs.{total}*\n⏰ Estimated Time: 35-40 minutes\n\nThank you! 🙏',
 };
+
 
 const STORAGE_KEY = 'rabbani_print_config';
 

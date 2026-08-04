@@ -44,8 +44,9 @@ export default defineConfig(({ mode }) => ({
           },
           {
             urlPattern: ({ url, request }) =>
-              url.origin === (globalThis as unknown as { location: Location }).location.origin &&
+              url.origin === (globalThis as unknown as { location: { origin: string } }).location.origin &&
               ["script", "style", "font", "image"].includes(request.destination),
+
 
             handler: "CacheFirst",
 

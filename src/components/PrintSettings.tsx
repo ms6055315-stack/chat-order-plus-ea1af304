@@ -6,6 +6,8 @@ import { Settings } from 'lucide-react';
 
 export interface PrintConfig {
   billWidth: number;
+  billPrintWidth: number;
+  billHeight: number;
   billFontSize: number;
   billHeaderSize: number;
   billItemSize: number;
@@ -22,6 +24,8 @@ export interface PrintConfig {
   billItemAlign: 'left' | 'center' | 'right';
   billLogo: string;
   tokenWidth: number;
+  tokenPrintWidth: number;
+  tokenHeight: number;
   tokenFontSize: number;
   tokenHeaderSize: number;
   tokenIdSize: number;
@@ -34,6 +38,8 @@ export interface PrintConfig {
 
 const DEFAULT_CONFIG: PrintConfig = {
   billWidth: 80,
+  billPrintWidth: 72.1,
+  billHeight: 297,
   billFontSize: 13,
   billHeaderSize: 18,
   billItemSize: 12,
@@ -50,6 +56,8 @@ const DEFAULT_CONFIG: PrintConfig = {
   billItemAlign: 'left',
   billLogo: '',
   tokenWidth: 80,
+  tokenPrintWidth: 72.1,
+  tokenHeight: 120,
   tokenFontSize: 14,
   tokenHeaderSize: 18,
   tokenIdSize: 24,
@@ -59,6 +67,7 @@ const DEFAULT_CONFIG: PrintConfig = {
   waMessageTemplate: '*RABBANI Fast Food* 🍔\n\nOrder: {orderId}\n\n{items}\n\n*Total: Rs.{total}*\n⏰ Estimated Time: 35-40 minutes\n\nThank you! 🙏',
   waDeliveryTemplate: '*RABBANI Fast Food* 🍔\n\nDelivery Order: {orderId}\nCustomer: {customerName}\nAddress: {address}\nPhone: {phone}\n\n{items}\n\nSubtotal: Rs.{subtotal}\nDelivery: Rs.{deliveryCharges}\n*Total: Rs.{total}*\n⏰ Estimated Time: 35-40 minutes\n\nThank you! 🙏',
 };
+
 
 const STORAGE_KEY = 'rabbani_print_config';
 
@@ -145,16 +154,25 @@ export function PrintSettings() {
                   <Input value={config.billPhone2} onChange={e => update('billPhone2', e.target.value)} className="h-8 text-xs mt-1" />
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-3 gap-2">
                 <div>
                   <label className="text-xs font-medium">Paper Width (mm)</label>
-                  <Input type="number" value={config.billWidth} onChange={e => update('billWidth', Number(e.target.value))} className="h-8 text-xs mt-1" />
+                  <Input type="number" step="0.1" value={config.billWidth} onChange={e => update('billWidth', Number(e.target.value))} className="h-8 text-xs mt-1" />
                 </div>
                 <div>
-                  <label className="text-xs font-medium">Body Font Size (px)</label>
-                  <Input type="number" value={config.billFontSize} onChange={e => update('billFontSize', Number(e.target.value))} className="h-8 text-xs mt-1" />
+                  <label className="text-xs font-medium">Print Width (mm)</label>
+                  <Input type="number" step="0.1" value={config.billPrintWidth} onChange={e => update('billPrintWidth', Number(e.target.value))} className="h-8 text-xs mt-1" />
+                </div>
+                <div>
+                  <label className="text-xs font-medium">Paper Length (mm)</label>
+                  <Input type="number" step="1" value={config.billHeight} onChange={e => update('billHeight', Number(e.target.value))} className="h-8 text-xs mt-1" />
                 </div>
               </div>
+              <div>
+                <label className="text-xs font-medium">Body Font Size (px)</label>
+                <Input type="number" value={config.billFontSize} onChange={e => update('billFontSize', Number(e.target.value))} className="h-8 text-xs mt-1" />
+              </div>
+
               <div className="grid grid-cols-3 gap-2">
                 <div>
                   <label className="text-xs font-medium">Header Size (px)</label>
@@ -213,10 +231,21 @@ export function PrintSettings() {
 
           {tab === 'token' && (
             <div className="space-y-3 max-h-[50vh] overflow-y-auto">
-              <div>
-                <label className="text-xs font-medium">Paper Width (mm)</label>
-                <Input type="number" value={config.tokenWidth} onChange={e => update('tokenWidth', Number(e.target.value))} className="h-8 text-xs mt-1" />
+              <div className="grid grid-cols-3 gap-2">
+                <div>
+                  <label className="text-xs font-medium">Paper Width (mm)</label>
+                  <Input type="number" step="0.1" value={config.tokenWidth} onChange={e => update('tokenWidth', Number(e.target.value))} className="h-8 text-xs mt-1" />
+                </div>
+                <div>
+                  <label className="text-xs font-medium">Print Width (mm)</label>
+                  <Input type="number" step="0.1" value={config.tokenPrintWidth} onChange={e => update('tokenPrintWidth', Number(e.target.value))} className="h-8 text-xs mt-1" />
+                </div>
+                <div>
+                  <label className="text-xs font-medium">Paper Length (mm)</label>
+                  <Input type="number" step="1" value={config.tokenHeight} onChange={e => update('tokenHeight', Number(e.target.value))} className="h-8 text-xs mt-1" />
+                </div>
               </div>
+
               <div className="grid grid-cols-2 gap-2">
                 <div>
                   <label className="text-xs font-medium">Font Size (px)</label>

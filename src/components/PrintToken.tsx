@@ -22,9 +22,10 @@ export function PrintToken({ order }: PrintTokenProps) {
     const html = `<!DOCTYPE html>
 <html><head><meta charset="utf-8"><title>Token - ${order.id}</title>
 <style>
-  @page { size: ${c.tokenWidth}mm auto; margin: 0; }
+  @page { size: ${c.tokenWidth}mm ${c.tokenHeight}mm; margin: 0; }
   * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { font-family: 'Courier New', monospace; width: ${c.tokenWidth}mm; margin: 0 auto; padding: 3mm; font-size: ${c.tokenFontSize}px; color: #000; line-height: 1.4; font-weight: ${fontWeight}; font-style: ${fontStyle}; }
+  body { font-family: 'Courier New', monospace; width: ${c.tokenPrintWidth}mm; margin: 0 auto; padding: 0; font-size: ${c.tokenFontSize}px; color: #000; line-height: 1.4; font-weight: ${fontWeight}; font-style: ${fontStyle}; }
+
   .center { text-align: center; }
   .bold { font-weight: bold; }
   .line { border-top: 1px dashed #000; margin: 3px 0; }

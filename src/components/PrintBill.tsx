@@ -25,9 +25,10 @@ export function PrintBill({ order }: PrintBillProps) {
     const html = `<!DOCTYPE html>
 <html><head><meta charset="utf-8"><title>Bill - ${order.id}</title>
 <style>
-  @page { size: ${c.billWidth}mm 297mm; margin: 0; }
+  @page { size: ${c.billWidth}mm ${c.billHeight}mm; margin: 0; }
   * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { font-family: 'Courier New', monospace; width: ${c.billWidth}mm; margin: 0 auto; padding: 3mm; font-size: ${c.billFontSize}px; color: #000; line-height: 1.4; font-weight: ${fontWeight}; font-style: ${fontStyle}; }
+  body { font-family: 'Courier New', monospace; width: ${c.billPrintWidth}mm; margin: 0 auto; padding: 0; font-size: ${c.billFontSize}px; color: #000; line-height: 1.4; font-weight: ${fontWeight}; font-style: ${fontStyle}; }
+
   .center { text-align: center; }
   .bold { font-weight: bold; }
   .line { border-top: 1px dashed #000; margin: 3px 0; }

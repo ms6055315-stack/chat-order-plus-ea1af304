@@ -154,16 +154,25 @@ export function PrintSettings() {
                   <Input value={config.billPhone2} onChange={e => update('billPhone2', e.target.value)} className="h-8 text-xs mt-1" />
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-2">
+              <div className="grid grid-cols-3 gap-2">
                 <div>
                   <label className="text-xs font-medium">Paper Width (mm)</label>
-                  <Input type="number" value={config.billWidth} onChange={e => update('billWidth', Number(e.target.value))} className="h-8 text-xs mt-1" />
+                  <Input type="number" step="0.1" value={config.billWidth} onChange={e => update('billWidth', Number(e.target.value))} className="h-8 text-xs mt-1" />
                 </div>
                 <div>
-                  <label className="text-xs font-medium">Body Font Size (px)</label>
-                  <Input type="number" value={config.billFontSize} onChange={e => update('billFontSize', Number(e.target.value))} className="h-8 text-xs mt-1" />
+                  <label className="text-xs font-medium">Print Width (mm)</label>
+                  <Input type="number" step="0.1" value={config.billPrintWidth} onChange={e => update('billPrintWidth', Number(e.target.value))} className="h-8 text-xs mt-1" />
+                </div>
+                <div>
+                  <label className="text-xs font-medium">Paper Length (mm)</label>
+                  <Input type="number" step="1" value={config.billHeight} onChange={e => update('billHeight', Number(e.target.value))} className="h-8 text-xs mt-1" />
                 </div>
               </div>
+              <div>
+                <label className="text-xs font-medium">Body Font Size (px)</label>
+                <Input type="number" value={config.billFontSize} onChange={e => update('billFontSize', Number(e.target.value))} className="h-8 text-xs mt-1" />
+              </div>
+
               <div className="grid grid-cols-3 gap-2">
                 <div>
                   <label className="text-xs font-medium">Header Size (px)</label>

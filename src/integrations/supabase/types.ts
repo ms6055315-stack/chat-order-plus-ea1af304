@@ -14,7 +14,30 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      pos_sync: {
+        Row: {
+          data: Json
+          device_id: string | null
+          store_key: string
+          sync_code: string
+          updated_at: string
+        }
+        Insert: {
+          data?: Json
+          device_id?: string | null
+          store_key: string
+          sync_code: string
+          updated_at?: string
+        }
+        Update: {
+          data?: Json
+          device_id?: string | null
+          store_key?: string
+          sync_code?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

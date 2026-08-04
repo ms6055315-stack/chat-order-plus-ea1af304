@@ -231,10 +231,21 @@ export function PrintSettings() {
 
           {tab === 'token' && (
             <div className="space-y-3 max-h-[50vh] overflow-y-auto">
-              <div>
-                <label className="text-xs font-medium">Paper Width (mm)</label>
-                <Input type="number" value={config.tokenWidth} onChange={e => update('tokenWidth', Number(e.target.value))} className="h-8 text-xs mt-1" />
+              <div className="grid grid-cols-3 gap-2">
+                <div>
+                  <label className="text-xs font-medium">Paper Width (mm)</label>
+                  <Input type="number" step="0.1" value={config.tokenWidth} onChange={e => update('tokenWidth', Number(e.target.value))} className="h-8 text-xs mt-1" />
+                </div>
+                <div>
+                  <label className="text-xs font-medium">Print Width (mm)</label>
+                  <Input type="number" step="0.1" value={config.tokenPrintWidth} onChange={e => update('tokenPrintWidth', Number(e.target.value))} className="h-8 text-xs mt-1" />
+                </div>
+                <div>
+                  <label className="text-xs font-medium">Paper Length (mm)</label>
+                  <Input type="number" step="1" value={config.tokenHeight} onChange={e => update('tokenHeight', Number(e.target.value))} className="h-8 text-xs mt-1" />
+                </div>
               </div>
+
               <div className="grid grid-cols-2 gap-2">
                 <div>
                   <label className="text-xs font-medium">Font Size (px)</label>

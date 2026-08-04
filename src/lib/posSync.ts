@@ -3,6 +3,7 @@
 // random sync code. Any device that scans the QR (or enters the code) joins the
 // same live session; changes propagate both ways in realtime.
 import { supabase } from '@/integrations/supabase/client';
+import type { Json } from '@/integrations/supabase/types';
 
 const SYNC_CODE_KEY = 'rabbani_sync_code';
 const DEVICE_ID_KEY = 'rabbani_device_id';
@@ -70,9 +71,9 @@ async function flush() {
   if (error) console.error('POS sync push failed', error);
 }
 
-function safeParse(raw: string): unknown {
+function safeParse(raw: string): Json {
   try {
-    return JSON.parse(raw);
+    return JSON.parse(raw) as Json;
   } catch {
     return raw;
   }

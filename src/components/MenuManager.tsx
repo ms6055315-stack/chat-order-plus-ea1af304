@@ -265,6 +265,10 @@ export function MenuManager({ items, categories, onAddItem, onUpdateItem, onDele
                       {item.variants && item.variants.length > 0 && (
                         <span className="text-[9px] text-muted-foreground bg-accent px-1 rounded">{item.variants.length} variants</span>
                       )}
+                      {item.showOnToken === false && (
+                        <span className="text-[9px] text-destructive bg-destructive/10 px-1 rounded">no token</span>
+                      )}
+
                       <span className="text-muted-foreground text-[10px]">{item.category}</span>
                       <span className="font-bold text-xs">Rs.{item.price}</span>
                       <button onClick={() => startEdit(item)} className="text-primary"><Edit2 className="h-3.5 w-3.5" /></button>

@@ -25,6 +25,10 @@ export function MenuManager({ items, categories, onAddItem, onUpdateItem, onDele
   const [image, setImage] = useState('');
   const [search, setSearch] = useState('');
   const [filterCat, setFilterCat] = useState('All');
+  const [showOnToken, setShowOnToken] = useState(true);
+  const [addVariants, setAddVariants] = useState<MenuItemVariant[]>([]);
+  const [addVarName, setAddVarName] = useState('');
+  const [addVarPrice, setAddVarPrice] = useState('');
 
   // Edit state
   const [editId, setEditId] = useState<string | null>(null);
@@ -33,6 +37,7 @@ export function MenuManager({ items, categories, onAddItem, onUpdateItem, onDele
   const [editCategory, setEditCategory] = useState('');
   const [editImage, setEditImage] = useState('');
   const [editVariants, setEditVariants] = useState<MenuItemVariant[]>([]);
+  const [editToken, setEditToken] = useState(true);
 
   // Add category state
   const [showAddCat, setShowAddCat] = useState(false);
@@ -42,13 +47,26 @@ export function MenuManager({ items, categories, onAddItem, onUpdateItem, onDele
   const [newVarName, setNewVarName] = useState('');
   const [newVarPrice, setNewVarPrice] = useState('');
 
+  // Dialer (numeric keypad) target
+  const [pad, setPad] = useState<{ title: string; value: string | number; apply: (n: number) => void } | null>(null);
+
   const handleAdd = () => {
     if (!name || !price) return;
-    onAddItem({ name, price: Number(price), category, image: image || undefined });
+    onAddItem({
+      name,
+      price: Number(price),
+      category,
+      image: image || undefined,
+      showOnToken,
+      variants: addVariants.length > 0 ? addVariants : undefined,
+    });
     setName('');
     setPrice('');
     setImage('');
+    setAddVariants([]);
+    setShowOnToken(true);
   };
+
 
   const startEdit = (item: MenuItem) => {
     setEditId(item.id);

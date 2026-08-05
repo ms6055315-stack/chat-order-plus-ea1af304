@@ -1,5 +1,7 @@
 import { useState, useCallback } from 'react';
 import { Order, DaySession, CartItem } from '@/lib/menu';
+import { useSyncRefresh } from '@/hooks/useSyncRefresh';
+
 
 const STORAGE_KEY = 'rabbani_orders';
 const SESSION_KEY = 'rabbani_session';
@@ -33,7 +35,13 @@ export function useOrders() {
   const [orders, setOrders] = useState<Order[]>(loadOrders);
   const [currentSession, setCurrentSession] = useState<DaySession | null>(loadSession);
 
+  useSyncRefresh([STORAGE_KEY, SESSION_KEY], useCallback(() => {
+    setOrders(loadOrders());
+    setCurrentSession(loadSession());
+  }, []));
+
   const isDayOpen = !!currentSession && !currentSession.endedAt;
+
 
   const startDay = useCallback((openingCash: number) => {
     const session: DaySession = {

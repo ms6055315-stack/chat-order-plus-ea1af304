@@ -1,5 +1,7 @@
 import { useState, useCallback } from 'react';
 import { MenuItem, DEFAULT_MENU_ITEMS, CATEGORIES } from '@/lib/menu';
+import { useSyncRefresh } from '@/hooks/useSyncRefresh';
+
 
 const STORAGE_KEY = 'rabbani_menu';
 const CAT_STORAGE_KEY = 'rabbani_categories';
@@ -21,6 +23,13 @@ function loadCategories(): string[] {
 export function useMenuItems() {
   const [items, setItems] = useState<MenuItem[]>(loadItems);
   const [categories, setCategories] = useState<string[]>(loadCategories);
+
+  useSyncRefresh([STORAGE_KEY, CAT_STORAGE_KEY], useCallback(() => {
+    setItems(loadItems());
+    setCategories(loadCategories());
+  }, []));
+
+
 
   const save = (newItems: MenuItem[]) => {
     setItems(newItems);

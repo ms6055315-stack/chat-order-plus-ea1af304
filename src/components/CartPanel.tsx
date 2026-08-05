@@ -59,11 +59,14 @@ export function CartPanel({
                 <button onClick={() => onQuantityChange(item.id, item.quantity - 1)} className="w-5 h-5 flex items-center justify-center rounded bg-accent hover:bg-muted">
                   <Minus className="h-3 w-3" />
                 </button>
-                <span className="w-6 text-center text-xs font-bold">{item.quantity}</span>
+                <button onClick={() => setQtyTarget({ id: item.id, name: item.name, qty: item.quantity })} className="w-6 text-center text-xs font-bold underline decoration-dotted" title="Enter quantity">
+                  {item.quantity}
+                </button>
                 <button onClick={() => onQuantityChange(item.id, item.quantity + 1)} className="w-5 h-5 flex items-center justify-center rounded bg-accent hover:bg-muted">
                   <Plus className="h-3 w-3" />
                 </button>
               </div>
+
               <span className="text-xs font-bold w-16 text-right">Rs.{item.price * item.quantity}</span>
               <button onClick={() => onRemoveItem(item.id)} className="text-destructive hover:text-destructive/80">
                 <Trash2 className="h-3 w-3" />

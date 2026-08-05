@@ -138,10 +138,32 @@ export function MenuManager({ items, categories, onAddItem, onUpdateItem, onDele
               <div className="flex gap-2 flex-wrap">
                 <Input value={name} onChange={e => setName(e.target.value)} placeholder="Item name" className="flex-1 h-8 text-xs min-w-[120px]" />
                 <Input value={price} onChange={e => setPrice(e.target.value)} placeholder="Price" type="number" className="w-20 h-8 text-xs" />
+                <NumPadButton onClick={() => setPad({ title: 'Item Price', value: price, apply: n => setPrice(String(n)) })} className="h-8" />
                 <select value={category} onChange={e => setCategory(e.target.value)} className="bg-accent text-accent-foreground rounded px-2 text-xs border border-border h-8">
                   {categories.filter(c => c !== 'All').map(c => <option key={c} value={c}>{c}</option>)}
                 </select>
                 <Button onClick={handleAdd} size="sm" className="h-8 text-xs gap-1"><Plus className="h-3 w-3" /> Add</Button>
+              </div>
+              <div className="flex items-center gap-2">
+                <input type="checkbox" id="newToken" checked={showOnToken} onChange={e => setShowOnToken(e.target.checked)} />
+                <label htmlFor="newToken" className="text-[11px]">Print this item on kitchen token</label>
+              </div>
+              {/* Variants for the new item */}
+              <div className="bg-accent/50 rounded p-2 space-y-1">
+                <p className="text-[10px] font-medium flex items-center gap-1"><Layers className="h-3 w-3" /> Variants for new item (optional)</p>
+                {addVariants.map(v => (
+                  <div key={v.id} className="flex items-center gap-1">
+                    <span className="flex-1 text-[10px]">{v.name}</span>
+                    <span className="text-[10px] font-bold">Rs.{v.price}</span>
+                    <button onClick={() => setAddVariants(prev => prev.filter(x => x.id !== v.id))} className="text-destructive"><Trash2 className="h-3 w-3" /></button>
+                  </div>
+                ))}
+                <div className="flex items-center gap-1">
+                  <Input value={addVarName} onChange={e => setAddVarName(e.target.value)} placeholder="Variant name (Half / 2 Pc)" className="flex-1 h-6 text-[10px]" />
+                  <Input value={addVarPrice} onChange={e => setAddVarPrice(e.target.value)} type="number" placeholder="Price" className="w-16 h-6 text-[10px]" />
+                  <NumPadButton onClick={() => setPad({ title: 'Variant Price', value: addVarPrice, apply: n => setAddVarPrice(String(n)) })} />
+                  <button onClick={addNewItemVariant} className="text-primary"><Plus className="h-3 w-3" /></button>
+                </div>
               </div>
               <div className="flex gap-2 items-center">
                 <Image className="h-4 w-4 text-muted-foreground" />
@@ -156,6 +178,7 @@ export function MenuManager({ items, categories, onAddItem, onUpdateItem, onDele
                 }} />
                 {image && <img src={image} alt="" className="w-8 h-8 rounded object-cover" />}
               </div>
+
             </div>
 
             {/* Add category */}

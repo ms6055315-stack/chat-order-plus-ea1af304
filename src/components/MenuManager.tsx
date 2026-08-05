@@ -75,13 +75,14 @@ export function MenuManager({ items, categories, onAddItem, onUpdateItem, onDele
     setEditCategory(item.category);
     setEditImage(item.image || '');
     setEditVariants(item.variants ? [...item.variants] : []);
+    setEditToken(item.showOnToken !== false);
     setNewVarName('');
     setNewVarPrice('');
   };
 
   const saveEdit = () => {
     if (!editId || !editName || !editPrice) return;
-    onUpdateItem(editId, { name: editName, price: Number(editPrice), category: editCategory, image: editImage || undefined, variants: editVariants.length > 0 ? editVariants : undefined });
+    onUpdateItem(editId, { name: editName, price: Number(editPrice), category: editCategory, image: editImage || undefined, showOnToken: editToken, variants: editVariants.length > 0 ? editVariants : undefined });
     setEditId(null);
   };
 
@@ -92,9 +93,17 @@ export function MenuManager({ items, categories, onAddItem, onUpdateItem, onDele
     setNewVarPrice('');
   };
 
+  const addNewItemVariant = () => {
+    if (!addVarName || !addVarPrice) return;
+    setAddVariants(prev => [...prev, { id: `var-${Date.now()}`, name: addVarName, price: Number(addVarPrice) }]);
+    setAddVarName('');
+    setAddVarPrice('');
+  };
+
   const removeVariant = (varId: string) => {
     setEditVariants(prev => prev.filter(v => v.id !== varId));
   };
+
 
   const cancelEdit = () => setEditId(null);
 

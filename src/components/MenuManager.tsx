@@ -286,6 +286,15 @@ export function MenuManager({ items, categories, onAddItem, onUpdateItem, onDele
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <NumPad
+        open={!!pad}
+        title={pad?.title || ''}
+        value={pad?.value ?? ''}
+        onClose={() => setPad(null)}
+        onConfirm={n => { pad?.apply(n); setPad(null); }}
+      />
     </>
+
   );
 }

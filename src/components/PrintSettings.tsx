@@ -267,6 +267,19 @@ export function PrintSettings() {
                   <Input type="number" step="1" value={config.tokenHeight} onChange={e => update('tokenHeight', Number(e.target.value))} className="h-8 text-xs mt-1" />
                 </div>
               </div>
+              <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2">
+                  <input type="checkbox" checked={config.tokenAutoHeight} onChange={e => update('tokenAutoHeight', e.target.checked)} id="tokenAuto" />
+                  <label htmlFor="tokenAuto" className="text-xs font-medium">Auto length (fit text)</label>
+                </div>
+                <div className="flex items-center gap-2">
+                  <label className="text-xs font-medium">Line spacing</label>
+                  <Input type="number" step="0.1" value={config.tokenLineHeight} onChange={e => update('tokenLineHeight', Number(e.target.value))} className="h-7 w-20 text-xs" />
+                </div>
+              </div>
+              <p className="text-[10px] text-muted-foreground">Token prints only the items (no charges or totals). Turn token printing on/off per item in Menu Manager.</p>
+
+
 
               <div className="grid grid-cols-2 gap-2">
                 <div>

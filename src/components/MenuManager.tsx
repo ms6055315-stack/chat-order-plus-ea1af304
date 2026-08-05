@@ -3,7 +3,9 @@ import { MenuItem, MenuItemVariant, CATEGORIES } from '@/lib/menu';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
+import { NumPad, NumPadButton } from '@/components/NumPad';
 import { Settings, Plus, Trash2, RotateCcw, Edit2, Save, X, FolderPlus, Image, Layers } from 'lucide-react';
+
 
 interface MenuManagerProps {
   items: MenuItem[];

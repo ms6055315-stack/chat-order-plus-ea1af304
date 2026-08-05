@@ -196,4 +196,23 @@ export async function initPosSync() {
       },
     )
     .subscribe();
+
+  // Broadcast channel used to forward print jobs to the printer-equipped device.
+  printChannel = supabase
+    .channel(`pos_print_${code}`, { config: { broadcast: { self: false } } })
+    .on('broadcast', { event: 'print' }, ({ payload }) => {
+      const job = payload as { html?: string; label?: string; from?: string };
+      if (!job?.html || job.from === getDeviceId()) return;
+      if (!isPrintHost()) return;
+      printHandler?.(job.html, job.label || 'Print');
+    })
+    .subscribe();
+
+  // Safety net: pull the shared state periodically in case a realtime event was missed.
+  setInterval(() => {
+    void pullAll().then((changed) => {
+      if (changed) window.dispatchEvent(new CustomEvent('rabbani-sync-updated', { detail: '*' }));
+    });
+  }, 8000);
 }
+

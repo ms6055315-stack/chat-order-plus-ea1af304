@@ -343,6 +343,10 @@ export default function OrdersPage() {
                       <Button size="sm" variant="outline" onClick={() => handleEditOpen(order)} className="h-6 text-[10px] gap-0.5 px-2">
                         <Edit2 className="h-2.5 w-2.5" /> Edit
                       </Button>
+                      <Button size="sm" variant="outline" onClick={() => handleEditInCart(order)} className="h-6 text-[10px] gap-0.5 px-2">
+                        <ShoppingCart className="h-2.5 w-2.5" /> In Cart
+                      </Button>
+
                     </>
                   )}
                   {(statusTab === 'completed' || statusTab === 'cancelled') && (

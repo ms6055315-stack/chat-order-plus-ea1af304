@@ -179,10 +179,21 @@ export function PrintSettings() {
                   <Input type="number" step="1" value={config.billHeight} onChange={e => update('billHeight', Number(e.target.value))} className="h-8 text-xs mt-1" />
                 </div>
               </div>
+              <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2">
+                  <input type="checkbox" checked={config.billAutoHeight} onChange={e => update('billAutoHeight', e.target.checked)} id="billAuto" />
+                  <label htmlFor="billAuto" className="text-xs font-medium">Auto length (fit text)</label>
+                </div>
+                <div className="flex items-center gap-2">
+                  <label className="text-xs font-medium">Line spacing</label>
+                  <Input type="number" step="0.1" value={config.billLineHeight} onChange={e => update('billLineHeight', Number(e.target.value))} className="h-7 w-20 text-xs" />
+                </div>
+              </div>
               <div>
                 <label className="text-xs font-medium">Body Font Size (px)</label>
                 <Input type="number" value={config.billFontSize} onChange={e => update('billFontSize', Number(e.target.value))} className="h-8 text-xs mt-1" />
               </div>
+
 
               <div className="grid grid-cols-3 gap-2">
                 <div>

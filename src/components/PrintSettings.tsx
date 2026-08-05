@@ -138,7 +138,34 @@ export function PrintSettings() {
             <button onClick={() => setTab('whatsapp')} className={`px-3 py-1.5 text-xs font-medium rounded ${tab === 'whatsapp' ? 'bg-primary text-primary-foreground' : 'bg-accent text-accent-foreground'}`}>
               WhatsApp Messages
             </button>
+            <button onClick={() => setTab('device')} className={`px-3 py-1.5 text-xs font-medium rounded ${tab === 'device' ? 'bg-primary text-primary-foreground' : 'bg-accent text-accent-foreground'}`}>
+              Printer Device
+            </button>
           </div>
+
+          {tab === 'device' && (
+            <div className="space-y-3 max-h-[50vh] overflow-y-auto">
+              <div className="flex items-start gap-2">
+                <input type="checkbox" checked={printHost} onChange={e => { setHost(e.target.checked); setPrintHost(e.target.checked); }} id="printHost" className="mt-1" />
+                <label htmlFor="printHost" className="text-xs">
+                  <span className="font-medium">This device has the printer (Print Host)</span>
+                  <span className="block text-[10px] text-muted-foreground">Turn this ON only on the main computer connected to the thermal printer.</span>
+                </label>
+              </div>
+              <div className="flex items-start gap-2">
+                <input type="checkbox" checked={config.remotePrint} onChange={e => update('remotePrint', e.target.checked)} id="remotePrint" className="mt-1" />
+                <label htmlFor="remotePrint" className="text-xs">
+                  <span className="font-medium">Send prints to the Print Host</span>
+                  <span className="block text-[10px] text-muted-foreground">Phones/tablets joined by QR will send bills and tokens to the main device's printer instead of printing themselves.</span>
+                </label>
+              </div>
+              <p className="text-[10px] text-muted-foreground">
+                For no print dialog on the main device, open Chrome with the <span className="font-mono">--kiosk-printing</span> flag and set the thermal printer as default.
+              </p>
+            </div>
+          )}
+
+
 
           {tab === 'bill' && (
             <div className="space-y-3 max-h-[50vh] overflow-y-auto">

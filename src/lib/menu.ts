@@ -9,11 +9,13 @@ export interface MenuItem {
   name: string;
   price: number;
   category: string;
-  image?: string;
   variants?: MenuItemVariant[];
   /** When false, this item is hidden from kitchen tokens. Defaults to true. */
   showOnToken?: boolean;
+  /** When true, adding this item to the cart prints a token for it immediately. */
+  autoPrintToken?: boolean;
 }
+
 
 
 export interface CartItem extends MenuItem {

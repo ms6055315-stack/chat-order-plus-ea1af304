@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { Order, CartItem, MenuItem, CATEGORIES } from '@/lib/menu';
-import { ArrowLeft, Check, X, Truck, Coffee, Car, ShoppingBag, MessageCircle, Edit2, Minus, Plus, Search, Trash2, Download } from 'lucide-react';
+import { ArrowLeft, Check, X, Truck, Coffee, Car, ShoppingBag, ShoppingCart, MessageCircle, Edit2, Minus, Plus, Search, Trash2, Download } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 
 const ORDER_TABS: { value: Order['orderType']; label: string; icon: React.ReactNode }[] = [

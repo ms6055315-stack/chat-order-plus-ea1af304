@@ -116,7 +116,17 @@ export function CartPanel({
                 {key}
               </button>
             ))}
-          </div>
+
+      <NumPad
+        open={!!qtyTarget}
+        title={qtyTarget ? `Quantity - ${qtyTarget.name}` : ''}
+        initialValue={qtyTarget?.qty ?? ''}
+        allowDecimal={false}
+        onClose={() => setQtyTarget(null)}
+        onConfirm={n => { if (qtyTarget) onQuantityChange(qtyTarget.id, n); setQtyTarget(null); }}
+      />
+    </div>
+
           <Button onClick={() => handleKeypadPress('OK')} className="w-full mt-2">Set Extra Charges</Button>
         </DialogContent>
       </Dialog>

@@ -51,6 +51,24 @@ export function useCart() {
     saveCartState({ items, discount, discountType, extraCharges, orderType, customerName, customerPhone, customerAddress, deliveryCharges, tableNumber, riderName, waiterName });
   }, [items, discount, discountType, extraCharges, orderType, customerName, customerPhone, customerAddress, deliveryCharges, tableNumber, riderName, waiterName]);
 
+  // Live cart sync: another device changed the cart -> mirror it here.
+  useSyncRefresh([CART_STORAGE_KEY], useCallback(() => {
+    const s = loadCart();
+    setItems(s.items);
+    setDiscount(s.discount);
+    setDiscountType(s.discountType);
+    setExtraCharges(s.extraCharges);
+    setOrderType(s.orderType);
+    setCustomerName(s.customerName);
+    setCustomerPhone(s.customerPhone);
+    setCustomerAddress(s.customerAddress);
+    setDeliveryCharges(s.deliveryCharges);
+    setTableNumber(s.tableNumber);
+    setRiderName(s.riderName);
+    setWaiterName(s.waiterName);
+  }, []));
+
+
   const addItem = useCallback((item: MenuItem) => {
     setItems(prev => {
       const existing = prev.find(i => i.id === item.id);

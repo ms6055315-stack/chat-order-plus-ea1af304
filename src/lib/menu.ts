@@ -11,7 +11,10 @@ export interface MenuItem {
   category: string;
   image?: string;
   variants?: MenuItemVariant[];
+  /** When false, this item is hidden from kitchen tokens. Defaults to true. */
+  showOnToken?: boolean;
 }
+
 
 export interface CartItem extends MenuItem {
   quantity: number;

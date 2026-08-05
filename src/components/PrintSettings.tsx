@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import { isPrintHost, setPrintHost } from '@/lib/posSync';
+
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
@@ -8,6 +10,8 @@ export interface PrintConfig {
   billWidth: number;
   billPrintWidth: number;
   billHeight: number;
+  billAutoHeight: boolean;
+  billLineHeight: number;
   billFontSize: number;
   billHeaderSize: number;
   billItemSize: number;
@@ -26,12 +30,15 @@ export interface PrintConfig {
   tokenWidth: number;
   tokenPrintWidth: number;
   tokenHeight: number;
+  tokenAutoHeight: boolean;
+  tokenLineHeight: number;
   tokenFontSize: number;
   tokenHeaderSize: number;
   tokenIdSize: number;
   tokenItemSize: number;
   tokenBold: boolean;
   tokenItalic: boolean;
+  remotePrint: boolean;
   waMessageTemplate: string;
   waDeliveryTemplate: string;
 }
@@ -40,6 +47,8 @@ const DEFAULT_CONFIG: PrintConfig = {
   billWidth: 80,
   billPrintWidth: 72.1,
   billHeight: 297,
+  billAutoHeight: false,
+  billLineHeight: 1.4,
   billFontSize: 13,
   billHeaderSize: 18,
   billItemSize: 12,
@@ -58,15 +67,19 @@ const DEFAULT_CONFIG: PrintConfig = {
   tokenWidth: 80,
   tokenPrintWidth: 72.1,
   tokenHeight: 120,
+  tokenAutoHeight: false,
+  tokenLineHeight: 1.4,
   tokenFontSize: 14,
   tokenHeaderSize: 18,
   tokenIdSize: 24,
   tokenItemSize: 13,
   tokenBold: true,
   tokenItalic: false,
+  remotePrint: true,
   waMessageTemplate: '*RABBANI Fast Food* 🍔\n\nOrder: {orderId}\n\n{items}\n\n*Total: Rs.{total}*\n⏰ Estimated Time: 35-40 minutes\n\nThank you! 🙏',
   waDeliveryTemplate: '*RABBANI Fast Food* 🍔\n\nDelivery Order: {orderId}\nCustomer: {customerName}\nAddress: {address}\nPhone: {phone}\n\n{items}\n\nSubtotal: Rs.{subtotal}\nDelivery: Rs.{deliveryCharges}\n*Total: Rs.{total}*\n⏰ Estimated Time: 35-40 minutes\n\nThank you! 🙏',
 };
+
 
 
 const STORAGE_KEY = 'rabbani_print_config';
@@ -84,8 +97,10 @@ function savePrintConfig(config: PrintConfig) {
 
 export function PrintSettings() {
   const [open, setOpen] = useState(false);
-  const [tab, setTab] = useState<'bill' | 'token' | 'whatsapp'>('bill');
+  const [tab, setTab] = useState<'bill' | 'token' | 'whatsapp' | 'device'>('bill');
   const [config, setConfig] = useState<PrintConfig>(loadPrintConfig);
+  const [printHost, setHost] = useState<boolean>(isPrintHost);
+
 
   const update = (key: keyof PrintConfig, value: any) => {
     setConfig(prev => ({ ...prev, [key]: value }));
@@ -123,7 +138,34 @@ export function PrintSettings() {
             <button onClick={() => setTab('whatsapp')} className={`px-3 py-1.5 text-xs font-medium rounded ${tab === 'whatsapp' ? 'bg-primary text-primary-foreground' : 'bg-accent text-accent-foreground'}`}>
               WhatsApp Messages
             </button>
+            <button onClick={() => setTab('device')} className={`px-3 py-1.5 text-xs font-medium rounded ${tab === 'device' ? 'bg-primary text-primary-foreground' : 'bg-accent text-accent-foreground'}`}>
+              Printer Device
+            </button>
           </div>
+
+          {tab === 'device' && (
+            <div className="space-y-3 max-h-[50vh] overflow-y-auto">
+              <div className="flex items-start gap-2">
+                <input type="checkbox" checked={printHost} onChange={e => { setHost(e.target.checked); setPrintHost(e.target.checked); }} id="printHost" className="mt-1" />
+                <label htmlFor="printHost" className="text-xs">
+                  <span className="font-medium">This device has the printer (Print Host)</span>
+                  <span className="block text-[10px] text-muted-foreground">Turn this ON only on the main computer connected to the thermal printer.</span>
+                </label>
+              </div>
+              <div className="flex items-start gap-2">
+                <input type="checkbox" checked={config.remotePrint} onChange={e => update('remotePrint', e.target.checked)} id="remotePrint" className="mt-1" />
+                <label htmlFor="remotePrint" className="text-xs">
+                  <span className="font-medium">Send prints to the Print Host</span>
+                  <span className="block text-[10px] text-muted-foreground">Phones/tablets joined by QR will send bills and tokens to the main device's printer instead of printing themselves.</span>
+                </label>
+              </div>
+              <p className="text-[10px] text-muted-foreground">
+                For no print dialog on the main device, open Chrome with the <span className="font-mono">--kiosk-printing</span> flag and set the thermal printer as default.
+              </p>
+            </div>
+          )}
+
+
 
           {tab === 'bill' && (
             <div className="space-y-3 max-h-[50vh] overflow-y-auto">
@@ -168,10 +210,21 @@ export function PrintSettings() {
                   <Input type="number" step="1" value={config.billHeight} onChange={e => update('billHeight', Number(e.target.value))} className="h-8 text-xs mt-1" />
                 </div>
               </div>
+              <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2">
+                  <input type="checkbox" checked={config.billAutoHeight} onChange={e => update('billAutoHeight', e.target.checked)} id="billAuto" />
+                  <label htmlFor="billAuto" className="text-xs font-medium">Auto length (fit text)</label>
+                </div>
+                <div className="flex items-center gap-2">
+                  <label className="text-xs font-medium">Line spacing</label>
+                  <Input type="number" step="0.1" value={config.billLineHeight} onChange={e => update('billLineHeight', Number(e.target.value))} className="h-7 w-20 text-xs" />
+                </div>
+              </div>
               <div>
                 <label className="text-xs font-medium">Body Font Size (px)</label>
                 <Input type="number" value={config.billFontSize} onChange={e => update('billFontSize', Number(e.target.value))} className="h-8 text-xs mt-1" />
               </div>
+
 
               <div className="grid grid-cols-3 gap-2">
                 <div>
@@ -245,6 +298,19 @@ export function PrintSettings() {
                   <Input type="number" step="1" value={config.tokenHeight} onChange={e => update('tokenHeight', Number(e.target.value))} className="h-8 text-xs mt-1" />
                 </div>
               </div>
+              <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2">
+                  <input type="checkbox" checked={config.tokenAutoHeight} onChange={e => update('tokenAutoHeight', e.target.checked)} id="tokenAuto" />
+                  <label htmlFor="tokenAuto" className="text-xs font-medium">Auto length (fit text)</label>
+                </div>
+                <div className="flex items-center gap-2">
+                  <label className="text-xs font-medium">Line spacing</label>
+                  <Input type="number" step="0.1" value={config.tokenLineHeight} onChange={e => update('tokenLineHeight', Number(e.target.value))} className="h-7 w-20 text-xs" />
+                </div>
+              </div>
+              <p className="text-[10px] text-muted-foreground">Token prints only the items (no charges or totals). Turn token printing on/off per item in Menu Manager.</p>
+
+
 
               <div className="grid grid-cols-2 gap-2">
                 <div>

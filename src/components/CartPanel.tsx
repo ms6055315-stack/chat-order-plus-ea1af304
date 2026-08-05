@@ -4,6 +4,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Minus, Plus, Trash2, Calculator } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { NumPad } from '@/components/NumPad';
+
 
 interface CartPanelProps {
   items: CartItem[];
@@ -31,7 +33,9 @@ export function CartPanel({
 }: CartPanelProps) {
   const [showKeypad, setShowKeypad] = useState(false);
   const [keypadValue, setKeypadValue] = useState('');
+  const [qtyTarget, setQtyTarget] = useState<{ id: string; name: string; qty: number } | null>(null);
   const grandTotal = total + (showDelivery ? deliveryCharges : 0);
+
 
   const handleKeypadPress = (key: string) => {
     if (key === 'C') { setKeypadValue(''); return; }
@@ -59,11 +63,14 @@ export function CartPanel({
                 <button onClick={() => onQuantityChange(item.id, item.quantity - 1)} className="w-5 h-5 flex items-center justify-center rounded bg-accent hover:bg-muted">
                   <Minus className="h-3 w-3" />
                 </button>
-                <span className="w-6 text-center text-xs font-bold">{item.quantity}</span>
+                <button onClick={() => setQtyTarget({ id: item.id, name: item.name, qty: item.quantity })} className="w-6 text-center text-xs font-bold underline decoration-dotted" title="Enter quantity">
+                  {item.quantity}
+                </button>
                 <button onClick={() => onQuantityChange(item.id, item.quantity + 1)} className="w-5 h-5 flex items-center justify-center rounded bg-accent hover:bg-muted">
                   <Plus className="h-3 w-3" />
                 </button>
               </div>
+
               <span className="text-xs font-bold w-16 text-right">Rs.{item.price * item.quantity}</span>
               <button onClick={() => onRemoveItem(item.id)} className="text-destructive hover:text-destructive/80">
                 <Trash2 className="h-3 w-3" />
@@ -111,7 +118,17 @@ export function CartPanel({
                 {key}
               </button>
             ))}
-          </div>
+
+      <NumPad
+        open={!!qtyTarget}
+        title={qtyTarget ? `Quantity - ${qtyTarget.name}` : ''}
+        initialValue={qtyTarget?.qty ?? ''}
+        allowDecimal={false}
+        onClose={() => setQtyTarget(null)}
+        onConfirm={n => { if (qtyTarget) onQuantityChange(qtyTarget.id, n); setQtyTarget(null); }}
+      />
+    </div>
+
           <Button onClick={() => handleKeypadPress('OK')} className="w-full mt-2">Set Extra Charges</Button>
         </DialogContent>
       </Dialog>

@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { Order, CartItem, MenuItem, CATEGORIES } from '@/lib/menu';
-import { ArrowLeft, Check, X, Truck, Coffee, Car, ShoppingBag, MessageCircle, Edit2, Minus, Plus, Search, Trash2, Download } from 'lucide-react';
+import { ArrowLeft, Check, X, Truck, Coffee, Car, ShoppingBag, ShoppingCart, MessageCircle, Edit2, Minus, Plus, Search, Trash2, Download } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 
 const ORDER_TABS: { value: Order['orderType']; label: string; icon: React.ReactNode }[] = [
@@ -178,6 +178,28 @@ export default function OrdersPage() {
     setEditOrder(null);
   };
 
+  // Pull an order back into the POS cart for editing, then remove it from the list.
+  const handleEditInCart = (order: Order) => {
+    localStorage.setItem('rabbani_cart', JSON.stringify({
+      items: order.items,
+      discount: order.discount || 0,
+      discountType: order.discountType || 'percent',
+      extraCharges: order.extraCharges || 0,
+      orderType: order.orderType,
+      customerName: order.customerName || '',
+      customerPhone: order.customerPhone || '',
+      customerAddress: order.customerAddress || '',
+      deliveryCharges: order.deliveryCharges || 0,
+      tableNumber: order.tableNumber || '',
+      riderName: order.riderName || '',
+      waiterName: order.waiterName || '',
+    }));
+    deleteOrder(order.id);
+    toast({ title: 'Order moved to cart', description: `${order.id} is now editable in the POS cart` });
+    navigate('/');
+  };
+
+
   // Filtered menu items for search + category
   const searchResults = menu.items.filter(i => {
     const matchSearch = !menuSearch.trim() || i.name.toLowerCase().includes(menuSearch.toLowerCase());
@@ -321,6 +343,10 @@ export default function OrdersPage() {
                       <Button size="sm" variant="outline" onClick={() => handleEditOpen(order)} className="h-6 text-[10px] gap-0.5 px-2">
                         <Edit2 className="h-2.5 w-2.5" /> Edit
                       </Button>
+                      <Button size="sm" variant="outline" onClick={() => handleEditInCart(order)} className="h-6 text-[10px] gap-0.5 px-2">
+                        <ShoppingCart className="h-2.5 w-2.5" /> In Cart
+                      </Button>
+
                     </>
                   )}
                   {(statusTab === 'completed' || statusTab === 'cancelled') && (

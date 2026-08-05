@@ -3,7 +3,9 @@ import { MenuItem, MenuItemVariant, CATEGORIES } from '@/lib/menu';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
+import { NumPad, NumPadButton } from '@/components/NumPad';
 import { Settings, Plus, Trash2, RotateCcw, Edit2, Save, X, FolderPlus, Image, Layers } from 'lucide-react';
+
 
 interface MenuManagerProps {
   items: MenuItem[];
@@ -23,6 +25,10 @@ export function MenuManager({ items, categories, onAddItem, onUpdateItem, onDele
   const [image, setImage] = useState('');
   const [search, setSearch] = useState('');
   const [filterCat, setFilterCat] = useState('All');
+  const [showOnToken, setShowOnToken] = useState(true);
+  const [addVariants, setAddVariants] = useState<MenuItemVariant[]>([]);
+  const [addVarName, setAddVarName] = useState('');
+  const [addVarPrice, setAddVarPrice] = useState('');
 
   // Edit state
   const [editId, setEditId] = useState<string | null>(null);
@@ -31,6 +37,7 @@ export function MenuManager({ items, categories, onAddItem, onUpdateItem, onDele
   const [editCategory, setEditCategory] = useState('');
   const [editImage, setEditImage] = useState('');
   const [editVariants, setEditVariants] = useState<MenuItemVariant[]>([]);
+  const [editToken, setEditToken] = useState(true);
 
   // Add category state
   const [showAddCat, setShowAddCat] = useState(false);
@@ -40,13 +47,26 @@ export function MenuManager({ items, categories, onAddItem, onUpdateItem, onDele
   const [newVarName, setNewVarName] = useState('');
   const [newVarPrice, setNewVarPrice] = useState('');
 
+  // Dialer (numeric keypad) target
+  const [pad, setPad] = useState<{ title: string; value: string | number; apply: (n: number) => void } | null>(null);
+
   const handleAdd = () => {
     if (!name || !price) return;
-    onAddItem({ name, price: Number(price), category, image: image || undefined });
+    onAddItem({
+      name,
+      price: Number(price),
+      category,
+      image: image || undefined,
+      showOnToken,
+      variants: addVariants.length > 0 ? addVariants : undefined,
+    });
     setName('');
     setPrice('');
     setImage('');
+    setAddVariants([]);
+    setShowOnToken(true);
   };
+
 
   const startEdit = (item: MenuItem) => {
     setEditId(item.id);
@@ -55,13 +75,14 @@ export function MenuManager({ items, categories, onAddItem, onUpdateItem, onDele
     setEditCategory(item.category);
     setEditImage(item.image || '');
     setEditVariants(item.variants ? [...item.variants] : []);
+    setEditToken(item.showOnToken !== false);
     setNewVarName('');
     setNewVarPrice('');
   };
 
   const saveEdit = () => {
     if (!editId || !editName || !editPrice) return;
-    onUpdateItem(editId, { name: editName, price: Number(editPrice), category: editCategory, image: editImage || undefined, variants: editVariants.length > 0 ? editVariants : undefined });
+    onUpdateItem(editId, { name: editName, price: Number(editPrice), category: editCategory, image: editImage || undefined, showOnToken: editToken, variants: editVariants.length > 0 ? editVariants : undefined });
     setEditId(null);
   };
 
@@ -72,9 +93,17 @@ export function MenuManager({ items, categories, onAddItem, onUpdateItem, onDele
     setNewVarPrice('');
   };
 
+  const addNewItemVariant = () => {
+    if (!addVarName || !addVarPrice) return;
+    setAddVariants(prev => [...prev, { id: `var-${Date.now()}`, name: addVarName, price: Number(addVarPrice) }]);
+    setAddVarName('');
+    setAddVarPrice('');
+  };
+
   const removeVariant = (varId: string) => {
     setEditVariants(prev => prev.filter(v => v.id !== varId));
   };
+
 
   const cancelEdit = () => setEditId(null);
 
@@ -109,10 +138,32 @@ export function MenuManager({ items, categories, onAddItem, onUpdateItem, onDele
               <div className="flex gap-2 flex-wrap">
                 <Input value={name} onChange={e => setName(e.target.value)} placeholder="Item name" className="flex-1 h-8 text-xs min-w-[120px]" />
                 <Input value={price} onChange={e => setPrice(e.target.value)} placeholder="Price" type="number" className="w-20 h-8 text-xs" />
+                <NumPadButton onClick={() => setPad({ title: 'Item Price', value: price, apply: n => setPrice(String(n)) })} className="h-8" />
                 <select value={category} onChange={e => setCategory(e.target.value)} className="bg-accent text-accent-foreground rounded px-2 text-xs border border-border h-8">
                   {categories.filter(c => c !== 'All').map(c => <option key={c} value={c}>{c}</option>)}
                 </select>
                 <Button onClick={handleAdd} size="sm" className="h-8 text-xs gap-1"><Plus className="h-3 w-3" /> Add</Button>
+              </div>
+              <div className="flex items-center gap-2">
+                <input type="checkbox" id="newToken" checked={showOnToken} onChange={e => setShowOnToken(e.target.checked)} />
+                <label htmlFor="newToken" className="text-[11px]">Print this item on kitchen token</label>
+              </div>
+              {/* Variants for the new item */}
+              <div className="bg-accent/50 rounded p-2 space-y-1">
+                <p className="text-[10px] font-medium flex items-center gap-1"><Layers className="h-3 w-3" /> Variants for new item (optional)</p>
+                {addVariants.map(v => (
+                  <div key={v.id} className="flex items-center gap-1">
+                    <span className="flex-1 text-[10px]">{v.name}</span>
+                    <span className="text-[10px] font-bold">Rs.{v.price}</span>
+                    <button onClick={() => setAddVariants(prev => prev.filter(x => x.id !== v.id))} className="text-destructive"><Trash2 className="h-3 w-3" /></button>
+                  </div>
+                ))}
+                <div className="flex items-center gap-1">
+                  <Input value={addVarName} onChange={e => setAddVarName(e.target.value)} placeholder="Variant name (Half / 2 Pc)" className="flex-1 h-6 text-[10px]" />
+                  <Input value={addVarPrice} onChange={e => setAddVarPrice(e.target.value)} type="number" placeholder="Price" className="w-16 h-6 text-[10px]" />
+                  <NumPadButton onClick={() => setPad({ title: 'Variant Price', value: addVarPrice, apply: n => setAddVarPrice(String(n)) })} />
+                  <button onClick={addNewItemVariant} className="text-primary"><Plus className="h-3 w-3" /></button>
+                </div>
               </div>
               <div className="flex gap-2 items-center">
                 <Image className="h-4 w-4 text-muted-foreground" />
@@ -127,6 +178,7 @@ export function MenuManager({ items, categories, onAddItem, onUpdateItem, onDele
                 }} />
                 {image && <img src={image} alt="" className="w-8 h-8 rounded object-cover" />}
               </div>
+
             </div>
 
             {/* Add category */}
@@ -161,12 +213,18 @@ export function MenuManager({ items, categories, onAddItem, onUpdateItem, onDele
                       <div className="flex items-center gap-2">
                         <Input value={editName} onChange={e => setEditName(e.target.value)} className="flex-1 h-7 text-xs" />
                         <Input value={editPrice} onChange={e => setEditPrice(e.target.value)} type="number" className="w-20 h-7 text-xs" />
+                        <NumPadButton onClick={() => setPad({ title: `${editName} Price`, value: editPrice, apply: n => setEditPrice(String(n)) })} />
                         <select value={editCategory} onChange={e => setEditCategory(e.target.value)} className="bg-accent text-accent-foreground rounded px-1.5 text-xs border border-border h-7">
                           {categories.filter(c => c !== 'All').map(c => <option key={c} value={c}>{c}</option>)}
                         </select>
                         <button onClick={saveEdit} className="text-primary"><Save className="h-3.5 w-3.5" /></button>
                         <button onClick={cancelEdit} className="text-muted-foreground"><X className="h-3.5 w-3.5" /></button>
                       </div>
+                      <div className="flex items-center gap-2">
+                        <input type="checkbox" id={`tok-${item.id}`} checked={editToken} onChange={e => setEditToken(e.target.checked)} />
+                        <label htmlFor={`tok-${item.id}`} className="text-[11px]">Print on kitchen token</label>
+                      </div>
+
                       <div className="flex gap-1 items-center">
                         <Image className="h-3 w-3 text-muted-foreground" />
                         <Input value={editImage} onChange={e => setEditImage(e.target.value)} placeholder="Image URL (optional)" className="flex-1 h-6 text-[10px]" />
@@ -187,14 +245,17 @@ export function MenuManager({ items, categories, onAddItem, onUpdateItem, onDele
                           <div key={v.id} className="flex items-center gap-1">
                             <Input value={v.name} onChange={e => setEditVariants(prev => prev.map(x => x.id === v.id ? { ...x, name: e.target.value } : x))} className="flex-1 h-6 text-[10px]" />
                             <Input value={v.price} onChange={e => setEditVariants(prev => prev.map(x => x.id === v.id ? { ...x, price: Number(e.target.value) || 0 } : x))} type="number" className="w-16 h-6 text-[10px]" />
+                            <NumPadButton onClick={() => setPad({ title: `${v.name} Price`, value: v.price, apply: n => setEditVariants(prev => prev.map(x => x.id === v.id ? { ...x, price: n } : x)) })} />
                             <button onClick={() => removeVariant(v.id)} className="text-destructive"><Trash2 className="h-3 w-3" /></button>
                           </div>
                         ))}
                         <div className="flex items-center gap-1">
                           <Input value={newVarName} onChange={e => setNewVarName(e.target.value)} placeholder="Variant name" className="flex-1 h-6 text-[10px]" />
                           <Input value={newVarPrice} onChange={e => setNewVarPrice(e.target.value)} type="number" placeholder="Price" className="w-16 h-6 text-[10px]" />
+                          <NumPadButton onClick={() => setPad({ title: 'Variant Price', value: newVarPrice, apply: n => setNewVarPrice(String(n)) })} />
                           <button onClick={addVariant} className="text-primary"><Plus className="h-3 w-3" /></button>
                         </div>
+
                       </div>
                     </div>
                   ) : (
@@ -204,6 +265,10 @@ export function MenuManager({ items, categories, onAddItem, onUpdateItem, onDele
                       {item.variants && item.variants.length > 0 && (
                         <span className="text-[9px] text-muted-foreground bg-accent px-1 rounded">{item.variants.length} variants</span>
                       )}
+                      {item.showOnToken === false && (
+                        <span className="text-[9px] text-destructive bg-destructive/10 px-1 rounded">no token</span>
+                      )}
+
                       <span className="text-muted-foreground text-[10px]">{item.category}</span>
                       <span className="font-bold text-xs">Rs.{item.price}</span>
                       <button onClick={() => startEdit(item)} className="text-primary"><Edit2 className="h-3.5 w-3.5" /></button>
@@ -221,6 +286,15 @@ export function MenuManager({ items, categories, onAddItem, onUpdateItem, onDele
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <NumPad
+        open={!!pad}
+        title={pad?.title || ''}
+        initialValue={pad?.value ?? ''}
+        onClose={() => setPad(null)}
+        onConfirm={n => { pad?.apply(n); setPad(null); }}
+      />
     </>
+
   );
 }

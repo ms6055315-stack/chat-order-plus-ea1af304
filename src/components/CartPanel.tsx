@@ -31,7 +31,9 @@ export function CartPanel({
 }: CartPanelProps) {
   const [showKeypad, setShowKeypad] = useState(false);
   const [keypadValue, setKeypadValue] = useState('');
+  const [qtyTarget, setQtyTarget] = useState<{ id: string; name: string; qty: number } | null>(null);
   const grandTotal = total + (showDelivery ? deliveryCharges : 0);
+
 
   const handleKeypadPress = (key: string) => {
     if (key === 'C') { setKeypadValue(''); return; }

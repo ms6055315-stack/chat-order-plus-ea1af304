@@ -7,14 +7,43 @@ import type { Json } from '@/integrations/supabase/types';
 
 const SYNC_CODE_KEY = 'rabbani_sync_code';
 const DEVICE_ID_KEY = 'rabbani_device_id';
+const PRINT_HOST_KEY = 'rabbani_print_host';
 const SYNCED_PREFIX = 'rabbani_';
 // Keys that must stay local to each device.
-const LOCAL_ONLY = new Set([SYNC_CODE_KEY, DEVICE_ID_KEY]);
+const LOCAL_ONLY = new Set([SYNC_CODE_KEY, DEVICE_ID_KEY, PRINT_HOST_KEY]);
 
 let started = false;
 let applyingRemote = false;
 const pending = new Map<string, string>();
 let flushTimer: ReturnType<typeof setTimeout> | null = null;
+let printChannel: ReturnType<typeof supabase.channel> | null = null;
+let printHandler: ((html: string, label: string) => void) | null = null;
+
+export function isPrintHost(): boolean {
+  return localStorage.getItem(PRINT_HOST_KEY) === '1';
+}
+
+export function setPrintHost(on: boolean) {
+  if (on) localStorage.setItem(PRINT_HOST_KEY, '1');
+  else localStorage.removeItem(PRINT_HOST_KEY);
+}
+
+/** Registers the function used to render incoming remote print jobs. */
+export function setRemotePrintHandler(fn: (html: string, label: string) => void) {
+  printHandler = fn;
+}
+
+/** Sends a print job to the device marked as print host. */
+export function sendRemotePrint(html: string, label: string) {
+  if (!printChannel) return false;
+  void printChannel.send({
+    type: 'broadcast',
+    event: 'print',
+    payload: { html, label, from: getDeviceId() },
+  });
+  return true;
+}
+
 
 export function getDeviceId(): string {
   let id = localStorage.getItem(DEVICE_ID_KEY);

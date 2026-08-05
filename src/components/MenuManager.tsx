@@ -26,6 +26,7 @@ export function MenuManager({ items, categories, onAddItem, onUpdateItem, onDele
   const [filterCat, setFilterCat] = useState('All');
   const [showOnToken, setShowOnToken] = useState(true);
   const [autoPrintToken, setAutoPrintToken] = useState(false);
+  const [askQuantity, setAskQuantity] = useState(false);
   const [addVariants, setAddVariants] = useState<MenuItemVariant[]>([]);
   const [addVarName, setAddVarName] = useState('');
   const [addVarPrice, setAddVarPrice] = useState('');
@@ -38,6 +39,7 @@ export function MenuManager({ items, categories, onAddItem, onUpdateItem, onDele
   const [editVariants, setEditVariants] = useState<MenuItemVariant[]>([]);
   const [editToken, setEditToken] = useState(true);
   const [editAutoPrint, setEditAutoPrint] = useState(false);
+  const [editAskQty, setEditAskQty] = useState(false);
 
   // Add category state
   const [showAddCat, setShowAddCat] = useState(false);
@@ -58,6 +60,7 @@ export function MenuManager({ items, categories, onAddItem, onUpdateItem, onDele
       category,
       showOnToken,
       autoPrintToken,
+      askQuantity,
       variants: addVariants.length > 0 ? addVariants : undefined,
     });
     setName('');
@@ -65,6 +68,7 @@ export function MenuManager({ items, categories, onAddItem, onUpdateItem, onDele
     setAddVariants([]);
     setShowOnToken(true);
     setAutoPrintToken(false);
+    setAskQuantity(false);
   };
 
 
@@ -76,13 +80,14 @@ export function MenuManager({ items, categories, onAddItem, onUpdateItem, onDele
     setEditVariants(item.variants ? [...item.variants] : []);
     setEditToken(item.showOnToken !== false);
     setEditAutoPrint(item.autoPrintToken === true);
+    setEditAskQty(item.askQuantity === true);
     setNewVarName('');
     setNewVarPrice('');
   };
 
   const saveEdit = () => {
     if (!editId || !editName || !editPrice) return;
-    onUpdateItem(editId, { name: editName, price: Number(editPrice), category: editCategory, showOnToken: editToken, autoPrintToken: editAutoPrint, variants: editVariants.length > 0 ? editVariants : undefined });
+    onUpdateItem(editId, { name: editName, price: Number(editPrice), category: editCategory, showOnToken: editToken, autoPrintToken: editAutoPrint, askQuantity: editAskQty, variants: editVariants.length > 0 ? editVariants : undefined });
     setEditId(null);
   };
 
@@ -149,6 +154,8 @@ export function MenuManager({ items, categories, onAddItem, onUpdateItem, onDele
                 <label htmlFor="newToken" className="text-[11px]">Print this item on kitchen token</label>
                 <input type="checkbox" id="newAutoPrint" checked={autoPrintToken} onChange={e => setAutoPrintToken(e.target.checked)} />
                 <label htmlFor="newAutoPrint" className="text-[11px]">Auto-print token when added to cart</label>
+                <input type="checkbox" id="newAskQty" checked={askQuantity} onChange={e => setAskQuantity(e.target.checked)} />
+                <label htmlFor="newAskQty" className="text-[11px]">Open dialer for quantity on select</label>
               </div>
               {/* Variants for the new item */}
               <div className="bg-accent/50 rounded p-2 space-y-1">
@@ -214,6 +221,8 @@ export function MenuManager({ items, categories, onAddItem, onUpdateItem, onDele
                         <label htmlFor={`tok-${item.id}`} className="text-[11px]">Print on kitchen token</label>
                         <input type="checkbox" id={`auto-${item.id}`} checked={editAutoPrint} onChange={e => setEditAutoPrint(e.target.checked)} />
                         <label htmlFor={`auto-${item.id}`} className="text-[11px]">Auto-print token when added</label>
+                        <input type="checkbox" id={`qty-${item.id}`} checked={editAskQty} onChange={e => setEditAskQty(e.target.checked)} />
+                        <label htmlFor={`qty-${item.id}`} className="text-[11px]">Dialer for quantity</label>
                       </div>
 
                       {/* Variants (Half/Pieces) */}
@@ -241,6 +250,9 @@ export function MenuManager({ items, categories, onAddItem, onUpdateItem, onDele
                       <span className="flex-1 text-xs">{item.name}</span>
                       {item.variants && item.variants.length > 0 && (
                         <span className="text-[9px] text-muted-foreground bg-accent px-1 rounded">{item.variants.length} variants</span>
+                      )}
+                      {item.askQuantity && (
+                        <span className="text-[9px] text-primary bg-primary/10 px-1 rounded">dialer</span>
                       )}
                       {item.autoPrintToken && (
                         <span className="text-[9px] text-secondary bg-secondary/10 px-1 rounded">auto token</span>

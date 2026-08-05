@@ -1,42 +1,51 @@
 import { memo, useState } from 'react';
 import { MenuItem, MenuItemVariant } from '@/lib/menu';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { NumPad } from '@/components/NumPad';
 
 interface MenuGridProps {
   items: MenuItem[];
   categories: string[];
   selectedCategory: string;
   onCategoryChange: (cat: string) => void;
-  onItemClick: (item: MenuItem) => void;
+  onItemClick: (item: MenuItem, quantity?: number) => void;
 }
 
 function MenuGridBase({ items, categories, selectedCategory, onCategoryChange, onItemClick }: MenuGridProps) {
   const filtered = selectedCategory === 'All' ? items : items.filter(i => i.category === selectedCategory);
   const [variantItem, setVariantItem] = useState<MenuItem | null>(null);
+  const [qtyItem, setQtyItem] = useState<MenuItem | null>(null);
+
+  // Route an item to the quantity dialer when enabled, otherwise add directly.
+  const pick = (item: MenuItem) => {
+    if (item.askQuantity) setQtyItem(item);
+    else onItemClick(item);
+  };
 
   const handleClick = (item: MenuItem) => {
     if (item.variants && item.variants.length > 0) {
       setVariantItem(item);
     } else {
-      onItemClick(item);
+      pick(item);
     }
   };
 
   const handleVariantSelect = (variant: MenuItemVariant, parentItem: MenuItem) => {
-    onItemClick({
+    pick({
       id: variant.id,
       name: variant.name,
       price: variant.price,
       category: parentItem.category,
       showOnToken: parentItem.showOnToken,
       autoPrintToken: parentItem.autoPrintToken,
+      askQuantity: parentItem.askQuantity,
     });
     setVariantItem(null);
   };
 
   const handleFullItem = () => {
     if (variantItem) {
-      onItemClick(variantItem);
+      pick(variantItem);
       setVariantItem(null);
     }
   };
@@ -104,6 +113,19 @@ function MenuGridBase({ items, categories, selectedCategory, onCategoryChange, o
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Quantity dialer */}
+      <NumPad
+        open={!!qtyItem}
+        title={`${qtyItem?.name || ''} — Quantity`}
+        initialValue={1}
+        allowDecimal={false}
+        onClose={() => setQtyItem(null)}
+        onConfirm={n => {
+          if (qtyItem) onItemClick(qtyItem, Math.max(1, Math.round(n) || 1));
+          setQtyItem(null);
+        }}
+      />
     </div>
   );
 }

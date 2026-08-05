@@ -341,11 +341,8 @@ export default function OrdersPage() {
                       <Button size="sm" variant="destructive" onClick={() => handleCancel(order.id)} className="h-6 text-[10px] gap-0.5 px-2">
                         <X className="h-2.5 w-2.5" /> Cancel
                       </Button>
-                      <Button size="sm" variant="outline" onClick={() => handleEditOpen(order)} className="h-6 text-[10px] gap-0.5 px-2">
-                        <Edit2 className="h-2.5 w-2.5" /> Edit
-                      </Button>
                       <Button size="sm" variant="outline" onClick={() => handleEditInCart(order)} className="h-6 text-[10px] gap-0.5 px-2">
-                        <ShoppingCart className="h-2.5 w-2.5" /> In Cart
+                        <Edit2 className="h-2.5 w-2.5" /> Edit
                       </Button>
 
                     </>
@@ -353,7 +350,7 @@ export default function OrdersPage() {
                   {(statusTab === 'completed' || statusTab === 'cancelled') && (
                     <>
                       <Button size="sm" variant="outline" onClick={() => handleEditInCart(order)} className="h-6 text-[10px] gap-0.5 px-2">
-                        <ShoppingCart className="h-2.5 w-2.5" /> Edit in Cart
+                        <Edit2 className="h-2.5 w-2.5" /> Edit
                       </Button>
                       <Button size="sm" variant="outline" onClick={() => handleClearOrder(order.id)} className="h-6 text-[10px] gap-0.5 px-2">
                         <Trash2 className="h-2.5 w-2.5" /> Clear

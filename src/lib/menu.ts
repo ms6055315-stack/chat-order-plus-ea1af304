@@ -14,6 +14,8 @@ export interface MenuItem {
   showOnToken?: boolean;
   /** When true, adding this item to the cart prints a token for it immediately. */
   autoPrintToken?: boolean;
+  /** When true, selecting this item opens the number pad to choose quantity. */
+  askQuantity?: boolean;
 }
 
 

@@ -46,6 +46,7 @@ const Index = () => {
   const [openingCash, setOpeningCash] = useState('');
   const [closingCash, setClosingCash] = useState('');
   const [lastOrder, setLastOrder] = useState<Order | null>(null);
+  const [showTypeDialog, setShowTypeDialog] = useState(false);
 
   const voice = useVoiceCommand({
     menuItems: menu.items,
@@ -61,12 +62,16 @@ const Index = () => {
 
   const agent = useAIAgent();
   const posConfig = loadPOSConfig();
-  const handleItemClick = (item: MenuItem) => {
+  const handleItemClick = (item: MenuItem, quantity = 1) => {
     if (!isDayOpen) {
       toast({ title: 'Day not started', description: 'Please start the day first!', variant: 'destructive' });
       return;
     }
     cart.addItem(item);
+    if (quantity > 1) {
+      const existing = cart.items.find(i => i.id === item.id)?.quantity || 0;
+      cart.updateQuantity(item.id, existing + quantity);
+    }
     // Per-item auto token: prints a token containing ONLY this item.
     if (item.autoPrintToken && item.showOnToken !== false) {
       const tokenOrder: Order = {
@@ -92,6 +97,7 @@ const Index = () => {
     cart.clearCart();
     setPaymentStatus('paid');
     setLastOrder(null);
+    setShowTypeDialog(true);
   };
 
   const handlePhoneChange = (phone: string) => {
@@ -426,6 +432,25 @@ const Index = () => {
       </main>
 
       {/* Dialogs */}
+      <Dialog open={showTypeDialog} onOpenChange={setShowTypeDialog}>
+        <DialogContent className="max-w-xs">
+          <DialogHeader><DialogTitle>Select Order Type</DialogTitle></DialogHeader>
+          <div className="grid grid-cols-2 gap-2 py-2">
+            {([
+              { value: 'dine-in', label: 'Dine In' },
+              { value: 'takeout', label: 'Take Out' },
+              { value: 'delivery', label: 'Delivery' },
+              { value: 'car', label: 'Car Order' },
+            ] as const).map(t => (
+              <Button key={t.value} variant="outline" className="h-14 text-sm"
+                onClick={() => { cart.setOrderType(t.value); setShowTypeDialog(false); }}>
+                {t.label}
+              </Button>
+            ))}
+          </div>
+        </DialogContent>
+      </Dialog>
+
       <Dialog open={showStartDayDialog} onOpenChange={setShowStartDayDialog}>
         <DialogContent>
           <DialogHeader><DialogTitle>Start Day</DialogTitle></DialogHeader>

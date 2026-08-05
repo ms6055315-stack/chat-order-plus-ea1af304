@@ -25,6 +25,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Phone, BarChart3, ClipboardList, Sun, Moon, Plus, X, Clock, MessageSquare, User, Store } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { loadPOSConfig } from '@/pages/POSSettings';
+import { buildTokenHtml, dispatchPrint } from '@/lib/printing';
 
 const Index = () => {
   const navigate = useNavigate();

@@ -290,7 +290,7 @@ export function MenuManager({ items, categories, onAddItem, onUpdateItem, onDele
       <NumPad
         open={!!pad}
         title={pad?.title || ''}
-        value={pad?.value ?? ''}
+        initialValue={pad?.value ?? ''}
         onClose={() => setPad(null)}
         onConfirm={n => { pad?.apply(n); setPad(null); }}
       />

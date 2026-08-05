@@ -194,6 +194,7 @@ export default function OrdersPage() {
       riderName: order.riderName || '',
       waiterName: order.waiterName || '',
     }));
+    window.dispatchEvent(new CustomEvent('rabbani-sync-updated', { detail: 'rabbani_cart' }));
     deleteOrder(order.id);
     toast({ title: 'Order moved to cart', description: `${order.id} is now editable in the POS cart` });
     navigate('/');
@@ -350,9 +351,14 @@ export default function OrdersPage() {
                     </>
                   )}
                   {(statusTab === 'completed' || statusTab === 'cancelled') && (
-                    <Button size="sm" variant="outline" onClick={() => handleClearOrder(order.id)} className="h-6 text-[10px] gap-0.5 px-2">
-                      <Trash2 className="h-2.5 w-2.5" /> Clear
-                    </Button>
+                    <>
+                      <Button size="sm" variant="outline" onClick={() => handleEditInCart(order)} className="h-6 text-[10px] gap-0.5 px-2">
+                        <ShoppingCart className="h-2.5 w-2.5" /> Edit in Cart
+                      </Button>
+                      <Button size="sm" variant="outline" onClick={() => handleClearOrder(order.id)} className="h-6 text-[10px] gap-0.5 px-2">
+                        <Trash2 className="h-2.5 w-2.5" /> Clear
+                      </Button>
+                    </>
                   )}
                   <PrintBill order={order} />
                   {order.customerPhone && (

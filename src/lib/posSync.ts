@@ -82,7 +82,7 @@ function isSyncedKey(key: string) {
 
 function scheduleFlush() {
   if (flushTimer) clearTimeout(flushTimer);
-  flushTimer = setTimeout(flush, 400);
+  flushTimer = setTimeout(flush, 150);
 }
 
 async function flush() {
@@ -213,6 +213,6 @@ export async function initPosSync() {
     void pullAll().then((changed) => {
       if (changed) window.dispatchEvent(new CustomEvent('rabbani-sync-updated', { detail: '*' }));
     });
-  }, 8000);
+  }, 5000);
 }
 

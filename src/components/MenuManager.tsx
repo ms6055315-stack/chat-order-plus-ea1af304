@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { NumPad, NumPadButton } from '@/components/NumPad';
-import { Settings, Plus, Trash2, RotateCcw, Edit2, Save, X, FolderPlus, Image, Layers } from 'lucide-react';
+import { Settings, Plus, Trash2, RotateCcw, Edit2, Save, X, FolderPlus, Layers } from 'lucide-react';
 
 
 interface MenuManagerProps {
@@ -22,10 +22,10 @@ export function MenuManager({ items, categories, onAddItem, onUpdateItem, onDele
   const [name, setName] = useState('');
   const [price, setPrice] = useState('');
   const [category, setCategory] = useState(categories[1] || '');
-  const [image, setImage] = useState('');
   const [search, setSearch] = useState('');
   const [filterCat, setFilterCat] = useState('All');
   const [showOnToken, setShowOnToken] = useState(true);
+  const [autoPrintToken, setAutoPrintToken] = useState(false);
   const [addVariants, setAddVariants] = useState<MenuItemVariant[]>([]);
   const [addVarName, setAddVarName] = useState('');
   const [addVarPrice, setAddVarPrice] = useState('');
@@ -35,9 +35,9 @@ export function MenuManager({ items, categories, onAddItem, onUpdateItem, onDele
   const [editName, setEditName] = useState('');
   const [editPrice, setEditPrice] = useState('');
   const [editCategory, setEditCategory] = useState('');
-  const [editImage, setEditImage] = useState('');
   const [editVariants, setEditVariants] = useState<MenuItemVariant[]>([]);
   const [editToken, setEditToken] = useState(true);
+  const [editAutoPrint, setEditAutoPrint] = useState(false);
 
   // Add category state
   const [showAddCat, setShowAddCat] = useState(false);
@@ -56,15 +56,15 @@ export function MenuManager({ items, categories, onAddItem, onUpdateItem, onDele
       name,
       price: Number(price),
       category,
-      image: image || undefined,
       showOnToken,
+      autoPrintToken,
       variants: addVariants.length > 0 ? addVariants : undefined,
     });
     setName('');
     setPrice('');
-    setImage('');
     setAddVariants([]);
     setShowOnToken(true);
+    setAutoPrintToken(false);
   };
 
 
@@ -73,16 +73,16 @@ export function MenuManager({ items, categories, onAddItem, onUpdateItem, onDele
     setEditName(item.name);
     setEditPrice(String(item.price));
     setEditCategory(item.category);
-    setEditImage(item.image || '');
     setEditVariants(item.variants ? [...item.variants] : []);
     setEditToken(item.showOnToken !== false);
+    setEditAutoPrint(item.autoPrintToken === true);
     setNewVarName('');
     setNewVarPrice('');
   };
 
   const saveEdit = () => {
     if (!editId || !editName || !editPrice) return;
-    onUpdateItem(editId, { name: editName, price: Number(editPrice), category: editCategory, image: editImage || undefined, showOnToken: editToken, variants: editVariants.length > 0 ? editVariants : undefined });
+    onUpdateItem(editId, { name: editName, price: Number(editPrice), category: editCategory, showOnToken: editToken, autoPrintToken: editAutoPrint, variants: editVariants.length > 0 ? editVariants : undefined });
     setEditId(null);
   };
 
@@ -147,6 +147,8 @@ export function MenuManager({ items, categories, onAddItem, onUpdateItem, onDele
               <div className="flex items-center gap-2">
                 <input type="checkbox" id="newToken" checked={showOnToken} onChange={e => setShowOnToken(e.target.checked)} />
                 <label htmlFor="newToken" className="text-[11px]">Print this item on kitchen token</label>
+                <input type="checkbox" id="newAutoPrint" checked={autoPrintToken} onChange={e => setAutoPrintToken(e.target.checked)} />
+                <label htmlFor="newAutoPrint" className="text-[11px]">Auto-print token when added to cart</label>
               </div>
               {/* Variants for the new item */}
               <div className="bg-accent/50 rounded p-2 space-y-1">
@@ -164,19 +166,6 @@ export function MenuManager({ items, categories, onAddItem, onUpdateItem, onDele
                   <NumPadButton onClick={() => setPad({ title: 'Variant Price', value: addVarPrice, apply: n => setAddVarPrice(String(n)) })} />
                   <button onClick={addNewItemVariant} className="text-primary"><Plus className="h-3 w-3" /></button>
                 </div>
-              </div>
-              <div className="flex gap-2 items-center">
-                <Image className="h-4 w-4 text-muted-foreground" />
-                <Input value={image} onChange={e => setImage(e.target.value)} placeholder="Image URL (PNG/JPG) - optional" className="flex-1 h-8 text-xs" />
-                <input type="file" accept="image/*" className="text-xs w-32" onChange={e => {
-                  const file = e.target.files?.[0];
-                  if (file) {
-                    const reader = new FileReader();
-                    reader.onload = () => setImage(reader.result as string);
-                    reader.readAsDataURL(file);
-                  }
-                }} />
-                {image && <img src={image} alt="" className="w-8 h-8 rounded object-cover" />}
               </div>
 
             </div>
@@ -223,21 +212,10 @@ export function MenuManager({ items, categories, onAddItem, onUpdateItem, onDele
                       <div className="flex items-center gap-2">
                         <input type="checkbox" id={`tok-${item.id}`} checked={editToken} onChange={e => setEditToken(e.target.checked)} />
                         <label htmlFor={`tok-${item.id}`} className="text-[11px]">Print on kitchen token</label>
+                        <input type="checkbox" id={`auto-${item.id}`} checked={editAutoPrint} onChange={e => setEditAutoPrint(e.target.checked)} />
+                        <label htmlFor={`auto-${item.id}`} className="text-[11px]">Auto-print token when added</label>
                       </div>
 
-                      <div className="flex gap-1 items-center">
-                        <Image className="h-3 w-3 text-muted-foreground" />
-                        <Input value={editImage} onChange={e => setEditImage(e.target.value)} placeholder="Image URL (optional)" className="flex-1 h-6 text-[10px]" />
-                        <input type="file" accept="image/*" className="text-[10px] w-24" onChange={e => {
-                          const file = e.target.files?.[0];
-                          if (file) {
-                            const reader = new FileReader();
-                            reader.onload = () => setEditImage(reader.result as string);
-                            reader.readAsDataURL(file);
-                          }
-                        }} />
-                        {editImage && <img src={editImage} alt="" className="w-6 h-6 rounded object-cover" />}
-                      </div>
                       {/* Variants (Half/Pieces) */}
                       <div className="bg-accent/50 rounded p-2 space-y-1">
                         <p className="text-[10px] font-medium flex items-center gap-1"><Layers className="h-3 w-3" /> Variants (Half / Pieces)</p>
@@ -260,10 +238,12 @@ export function MenuManager({ items, categories, onAddItem, onUpdateItem, onDele
                     </div>
                   ) : (
                     <div className="flex items-center gap-2 text-sm">
-                      {item.image && <img src={item.image} alt="" className="w-6 h-6 rounded object-cover" />}
                       <span className="flex-1 text-xs">{item.name}</span>
                       {item.variants && item.variants.length > 0 && (
                         <span className="text-[9px] text-muted-foreground bg-accent px-1 rounded">{item.variants.length} variants</span>
+                      )}
+                      {item.autoPrintToken && (
+                        <span className="text-[9px] text-secondary bg-secondary/10 px-1 rounded">auto token</span>
                       )}
                       {item.showOnToken === false && (
                         <span className="text-[9px] text-destructive bg-destructive/10 px-1 rounded">no token</span>

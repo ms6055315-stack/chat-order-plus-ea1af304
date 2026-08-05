@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import { isPrintHost, setPrintHost } from '@/lib/posSync';
+
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
@@ -95,8 +97,10 @@ function savePrintConfig(config: PrintConfig) {
 
 export function PrintSettings() {
   const [open, setOpen] = useState(false);
-  const [tab, setTab] = useState<'bill' | 'token' | 'whatsapp'>('bill');
+  const [tab, setTab] = useState<'bill' | 'token' | 'whatsapp' | 'device'>('bill');
   const [config, setConfig] = useState<PrintConfig>(loadPrintConfig);
+  const [printHost, setHost] = useState<boolean>(isPrintHost);
+
 
   const update = (key: keyof PrintConfig, value: any) => {
     setConfig(prev => ({ ...prev, [key]: value }));

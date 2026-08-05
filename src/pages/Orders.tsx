@@ -178,6 +178,28 @@ export default function OrdersPage() {
     setEditOrder(null);
   };
 
+  // Pull an order back into the POS cart for editing, then remove it from the list.
+  const handleEditInCart = (order: Order) => {
+    localStorage.setItem('rabbani_cart', JSON.stringify({
+      items: order.items,
+      discount: order.discount || 0,
+      discountType: order.discountType || 'percent',
+      extraCharges: order.extraCharges || 0,
+      orderType: order.orderType,
+      customerName: order.customerName || '',
+      customerPhone: order.customerPhone || '',
+      customerAddress: order.customerAddress || '',
+      deliveryCharges: order.deliveryCharges || 0,
+      tableNumber: order.tableNumber || '',
+      riderName: order.riderName || '',
+      waiterName: order.waiterName || '',
+    }));
+    deleteOrder(order.id);
+    toast({ title: 'Order moved to cart', description: `${order.id} is now editable in the POS cart` });
+    navigate('/');
+  };
+
+
   // Filtered menu items for search + category
   const searchResults = menu.items.filter(i => {
     const matchSearch = !menuSearch.trim() || i.name.toLowerCase().includes(menuSearch.toLowerCase());

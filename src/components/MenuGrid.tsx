@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { memo, useState } from 'react';
 import { MenuItem, MenuItemVariant } from '@/lib/menu';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
@@ -10,7 +10,7 @@ interface MenuGridProps {
   onItemClick: (item: MenuItem) => void;
 }
 
-export function MenuGrid({ items, categories, selectedCategory, onCategoryChange, onItemClick }: MenuGridProps) {
+function MenuGridBase({ items, categories, selectedCategory, onCategoryChange, onItemClick }: MenuGridProps) {
   const filtered = selectedCategory === 'All' ? items : items.filter(i => i.category === selectedCategory);
   const [variantItem, setVariantItem] = useState<MenuItem | null>(null);
 
@@ -23,7 +23,14 @@ export function MenuGrid({ items, categories, selectedCategory, onCategoryChange
   };
 
   const handleVariantSelect = (variant: MenuItemVariant, parentItem: MenuItem) => {
-    onItemClick({ id: variant.id, name: variant.name, price: variant.price, category: parentItem.category });
+    onItemClick({
+      id: variant.id,
+      name: variant.name,
+      price: variant.price,
+      category: parentItem.category,
+      showOnToken: parentItem.showOnToken,
+      autoPrintToken: parentItem.autoPrintToken,
+    });
     setVariantItem(null);
   };
 
@@ -100,3 +107,5 @@ export function MenuGrid({ items, categories, selectedCategory, onCategoryChange
     </div>
   );
 }
+
+export const MenuGrid = memo(MenuGridBase);

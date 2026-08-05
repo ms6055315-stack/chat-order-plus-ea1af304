@@ -8,6 +8,8 @@ export interface PrintConfig {
   billWidth: number;
   billPrintWidth: number;
   billHeight: number;
+  billAutoHeight: boolean;
+  billLineHeight: number;
   billFontSize: number;
   billHeaderSize: number;
   billItemSize: number;
@@ -26,12 +28,15 @@ export interface PrintConfig {
   tokenWidth: number;
   tokenPrintWidth: number;
   tokenHeight: number;
+  tokenAutoHeight: boolean;
+  tokenLineHeight: number;
   tokenFontSize: number;
   tokenHeaderSize: number;
   tokenIdSize: number;
   tokenItemSize: number;
   tokenBold: boolean;
   tokenItalic: boolean;
+  remotePrint: boolean;
   waMessageTemplate: string;
   waDeliveryTemplate: string;
 }
@@ -40,6 +45,8 @@ const DEFAULT_CONFIG: PrintConfig = {
   billWidth: 80,
   billPrintWidth: 72.1,
   billHeight: 297,
+  billAutoHeight: false,
+  billLineHeight: 1.4,
   billFontSize: 13,
   billHeaderSize: 18,
   billItemSize: 12,
@@ -58,15 +65,19 @@ const DEFAULT_CONFIG: PrintConfig = {
   tokenWidth: 80,
   tokenPrintWidth: 72.1,
   tokenHeight: 120,
+  tokenAutoHeight: false,
+  tokenLineHeight: 1.4,
   tokenFontSize: 14,
   tokenHeaderSize: 18,
   tokenIdSize: 24,
   tokenItemSize: 13,
   tokenBold: true,
   tokenItalic: false,
+  remotePrint: true,
   waMessageTemplate: '*RABBANI Fast Food* 🍔\n\nOrder: {orderId}\n\n{items}\n\n*Total: Rs.{total}*\n⏰ Estimated Time: 35-40 minutes\n\nThank you! 🙏',
   waDeliveryTemplate: '*RABBANI Fast Food* 🍔\n\nDelivery Order: {orderId}\nCustomer: {customerName}\nAddress: {address}\nPhone: {phone}\n\n{items}\n\nSubtotal: Rs.{subtotal}\nDelivery: Rs.{deliveryCharges}\n*Total: Rs.{total}*\n⏰ Estimated Time: 35-40 minutes\n\nThank you! 🙏',
 };
+
 
 
 const STORAGE_KEY = 'rabbani_print_config';

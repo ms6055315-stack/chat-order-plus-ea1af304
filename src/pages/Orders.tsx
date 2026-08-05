@@ -194,6 +194,7 @@ export default function OrdersPage() {
       riderName: order.riderName || '',
       waiterName: order.waiterName || '',
     }));
+    window.dispatchEvent(new CustomEvent('rabbani-sync-updated', { detail: 'rabbani_cart' }));
     deleteOrder(order.id);
     toast({ title: 'Order moved to cart', description: `${order.id} is now editable in the POS cart` });
     navigate('/');

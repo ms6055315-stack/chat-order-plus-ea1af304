@@ -213,12 +213,18 @@ export function MenuManager({ items, categories, onAddItem, onUpdateItem, onDele
                       <div className="flex items-center gap-2">
                         <Input value={editName} onChange={e => setEditName(e.target.value)} className="flex-1 h-7 text-xs" />
                         <Input value={editPrice} onChange={e => setEditPrice(e.target.value)} type="number" className="w-20 h-7 text-xs" />
+                        <NumPadButton onClick={() => setPad({ title: `${editName} Price`, value: editPrice, apply: n => setEditPrice(String(n)) })} />
                         <select value={editCategory} onChange={e => setEditCategory(e.target.value)} className="bg-accent text-accent-foreground rounded px-1.5 text-xs border border-border h-7">
                           {categories.filter(c => c !== 'All').map(c => <option key={c} value={c}>{c}</option>)}
                         </select>
                         <button onClick={saveEdit} className="text-primary"><Save className="h-3.5 w-3.5" /></button>
                         <button onClick={cancelEdit} className="text-muted-foreground"><X className="h-3.5 w-3.5" /></button>
                       </div>
+                      <div className="flex items-center gap-2">
+                        <input type="checkbox" id={`tok-${item.id}`} checked={editToken} onChange={e => setEditToken(e.target.checked)} />
+                        <label htmlFor={`tok-${item.id}`} className="text-[11px]">Print on kitchen token</label>
+                      </div>
+
                       <div className="flex gap-1 items-center">
                         <Image className="h-3 w-3 text-muted-foreground" />
                         <Input value={editImage} onChange={e => setEditImage(e.target.value)} placeholder="Image URL (optional)" className="flex-1 h-6 text-[10px]" />

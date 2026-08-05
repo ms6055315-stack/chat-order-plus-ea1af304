@@ -245,14 +245,17 @@ export function MenuManager({ items, categories, onAddItem, onUpdateItem, onDele
                           <div key={v.id} className="flex items-center gap-1">
                             <Input value={v.name} onChange={e => setEditVariants(prev => prev.map(x => x.id === v.id ? { ...x, name: e.target.value } : x))} className="flex-1 h-6 text-[10px]" />
                             <Input value={v.price} onChange={e => setEditVariants(prev => prev.map(x => x.id === v.id ? { ...x, price: Number(e.target.value) || 0 } : x))} type="number" className="w-16 h-6 text-[10px]" />
+                            <NumPadButton onClick={() => setPad({ title: `${v.name} Price`, value: v.price, apply: n => setEditVariants(prev => prev.map(x => x.id === v.id ? { ...x, price: n } : x)) })} />
                             <button onClick={() => removeVariant(v.id)} className="text-destructive"><Trash2 className="h-3 w-3" /></button>
                           </div>
                         ))}
                         <div className="flex items-center gap-1">
                           <Input value={newVarName} onChange={e => setNewVarName(e.target.value)} placeholder="Variant name" className="flex-1 h-6 text-[10px]" />
                           <Input value={newVarPrice} onChange={e => setNewVarPrice(e.target.value)} type="number" placeholder="Price" className="w-16 h-6 text-[10px]" />
+                          <NumPadButton onClick={() => setPad({ title: 'Variant Price', value: newVarPrice, apply: n => setNewVarPrice(String(n)) })} />
                           <button onClick={addVariant} className="text-primary"><Plus className="h-3 w-3" /></button>
                         </div>
+
                       </div>
                     </div>
                   ) : (

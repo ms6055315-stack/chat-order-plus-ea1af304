@@ -62,12 +62,48 @@ const Index = () => {
 
   const agent = useAIAgent();
   const posConfig = loadPOSConfig();
+  const addToCart = (item: MenuItem, quantity = 1) => {
+    cart.addItem(item);
+    if (quantity > 1) {
+      const existing = cart.items.find(i => i.id === item.id)?.quantity || 0;
+      cart.updateQuantity(item.id, existing + quantity);
+    }
+    if (item.autoPrintToken && item.showOnToken !== false) {
+      const tokenOrder: Order = {
+        id: `T-${Date.now().toString().slice(-5)}`,
+        items: [{ ...item, quantity: 1 }],
+        orderType: cart.orderType as Order['orderType'],
+        tableNumber: cart.orderType === 'dine-in' ? cart.tableNumber : undefined,
+        discount: 0,
+        discountType: 'percent',
+        subtotal: item.price,
+        total: item.price,
+        status: 'pending',
+        paymentStatus: 'paid',
+        createdAt: new Date(),
+      };
+      const where = dispatchPrint(buildTokenHtml(tokenOrder), `Token ${item.name}`);
+      if (where === 'remote') toast({ title: 'Token sent to main printer' });
+    }
+  };
+
   const handleItemClick = (item: MenuItem, quantity = 1) => {
     if (!isDayOpen) {
       toast({ title: 'Day not started', description: 'Please start the day first!', variant: 'destructive' });
       return;
     }
+    // Fresh cart and no order type picked yet -> ask first, then add the item.
+    if (cart.items.length === 0 && !typeChosen) {
+      setPendingItem({ item, quantity });
+      setShowTypeDialog(true);
+      return;
+    }
+    addToCart(item, quantity);
+  };
+
+  const unusedHandleItemClick = (item: MenuItem, quantity = 1) => {
     cart.addItem(item);
+
     if (quantity > 1) {
       const existing = cart.items.find(i => i.id === item.id)?.quantity || 0;
       cart.updateQuantity(item.id, existing + quantity);

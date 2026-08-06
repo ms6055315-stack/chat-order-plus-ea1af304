@@ -47,6 +47,9 @@ const Index = () => {
   const [closingCash, setClosingCash] = useState('');
   const [lastOrder, setLastOrder] = useState<Order | null>(null);
   const [showTypeDialog, setShowTypeDialog] = useState(false);
+  const [typeChosen, setTypeChosen] = useState(false);
+  const [pendingItem, setPendingItem] = useState<{ item: MenuItem; quantity: number } | null>(null);
+
 
   const voice = useVoiceCommand({
     menuItems: menu.items,

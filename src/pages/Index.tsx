@@ -107,12 +107,21 @@ const Index = () => {
 
 
 
-  const handleNewOrder = () => {
+  // Reset after an order is closed — no popup here; the type is asked again as
+  // soon as the next item is picked.
+  const resetAfterOrder = () => {
     cart.clearCart();
     setPaymentStatus('paid');
+    setTypeChosen(false);
+    setPendingItem(null);
+  };
+
+  const handleNewOrder = () => {
+    resetAfterOrder();
     setLastOrder(null);
     setShowTypeDialog(true);
   };
+
 
   const handlePhoneChange = (phone: string) => {
     cart.setCustomerPhone(phone);

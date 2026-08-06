@@ -457,7 +457,16 @@ const Index = () => {
               { value: 'car', label: 'Car Order' },
             ] as const).map(t => (
               <Button key={t.value} variant="outline" className="h-14 text-sm"
-                onClick={() => { cart.setOrderType(t.value); setShowTypeDialog(false); }}>
+                onClick={() => {
+                  cart.setOrderType(t.value);
+                  setTypeChosen(true);
+                  setShowTypeDialog(false);
+                  if (pendingItem) {
+                    addToCart(pendingItem.item, pendingItem.quantity);
+                    setPendingItem(null);
+                  }
+                }}>
+
                 {t.label}
               </Button>
             ))}

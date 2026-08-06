@@ -101,32 +101,7 @@ const Index = () => {
     addToCart(item, quantity);
   };
 
-  const unusedHandleItemClick = (item: MenuItem, quantity = 1) => {
-    cart.addItem(item);
 
-    if (quantity > 1) {
-      const existing = cart.items.find(i => i.id === item.id)?.quantity || 0;
-      cart.updateQuantity(item.id, existing + quantity);
-    }
-    // Per-item auto token: prints a token containing ONLY this item.
-    if (item.autoPrintToken && item.showOnToken !== false) {
-      const tokenOrder: Order = {
-        id: `T-${Date.now().toString().slice(-5)}`,
-        items: [{ ...item, quantity: 1 }],
-        orderType: cart.orderType as Order['orderType'],
-        tableNumber: cart.orderType === 'dine-in' ? cart.tableNumber : undefined,
-        discount: 0,
-        discountType: 'percent',
-        subtotal: item.price,
-        total: item.price,
-        status: 'pending',
-        paymentStatus: 'paid',
-        createdAt: new Date(),
-      };
-      const where = dispatchPrint(buildTokenHtml(tokenOrder), `Token ${item.name}`);
-      if (where === 'remote') toast({ title: 'Token sent to main printer' });
-    }
-  };
 
 
   const handleNewOrder = () => {

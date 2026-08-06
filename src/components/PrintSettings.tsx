@@ -288,6 +288,8 @@ export function PrintSettings() {
 
           {tab === 'token' && (
             <div className="space-y-3 max-h-[50vh] overflow-y-auto">
+              <PrintPreview config={config} kind="token" />
+
               <div className="grid grid-cols-3 gap-2">
                 <div>
                   <label className="text-xs font-medium">Paper Width (mm)</label>

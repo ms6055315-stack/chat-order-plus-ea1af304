@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import { isPrintHost, setPrintHost } from '@/lib/posSync';
+import { PrintPreview } from '@/components/PrintPreview';
+
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';

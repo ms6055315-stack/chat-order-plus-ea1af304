@@ -195,7 +195,7 @@ const Index = () => {
     const newOrder = addOrder(orderData);
     setLastOrder(newOrder);
     toast({ title: 'Order placed!', description: `${newOrder.id} - Rs.${newOrder.total}` });
-    handleNewOrder();
+    resetAfterOrder();
   };
 
   const handleStartDay = () => {

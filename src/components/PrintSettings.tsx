@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import { isPrintHost, setPrintHost } from '@/lib/posSync';
+import { PrintPreview } from '@/components/PrintPreview';
+
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -169,6 +171,8 @@ export function PrintSettings() {
 
           {tab === 'bill' && (
             <div className="space-y-3 max-h-[50vh] overflow-y-auto">
+              <PrintPreview config={config} kind="bill" />
+
               <div>
                 <label className="text-xs font-medium">Shop Logo (URL or base64)</label>
                 <Input value={config.billLogo} onChange={e => update('billLogo', e.target.value)} placeholder="https://... or paste base64" className="h-8 text-xs mt-1" />
@@ -284,6 +288,8 @@ export function PrintSettings() {
 
           {tab === 'token' && (
             <div className="space-y-3 max-h-[50vh] overflow-y-auto">
+              <PrintPreview config={config} kind="token" />
+
               <div className="grid grid-cols-3 gap-2">
                 <div>
                   <label className="text-xs font-medium">Paper Width (mm)</label>

@@ -47,6 +47,9 @@ const Index = () => {
   const [closingCash, setClosingCash] = useState('');
   const [lastOrder, setLastOrder] = useState<Order | null>(null);
   const [showTypeDialog, setShowTypeDialog] = useState(false);
+  const [typeChosen, setTypeChosen] = useState(false);
+  const [pendingItem, setPendingItem] = useState<{ item: MenuItem; quantity: number } | null>(null);
+
 
   const voice = useVoiceCommand({
     menuItems: menu.items,
@@ -62,17 +65,12 @@ const Index = () => {
 
   const agent = useAIAgent();
   const posConfig = loadPOSConfig();
-  const handleItemClick = (item: MenuItem, quantity = 1) => {
-    if (!isDayOpen) {
-      toast({ title: 'Day not started', description: 'Please start the day first!', variant: 'destructive' });
-      return;
-    }
+  const addToCart = (item: MenuItem, quantity = 1) => {
     cart.addItem(item);
     if (quantity > 1) {
       const existing = cart.items.find(i => i.id === item.id)?.quantity || 0;
       cart.updateQuantity(item.id, existing + quantity);
     }
-    // Per-item auto token: prints a token containing ONLY this item.
     if (item.autoPrintToken && item.showOnToken !== false) {
       const tokenOrder: Order = {
         id: `T-${Date.now().toString().slice(-5)}`,
@@ -92,13 +90,38 @@ const Index = () => {
     }
   };
 
+  const handleItemClick = (item: MenuItem, quantity = 1) => {
+    if (!isDayOpen) {
+      toast({ title: 'Day not started', description: 'Please start the day first!', variant: 'destructive' });
+      return;
+    }
+    // Fresh cart and no order type picked yet -> ask first, then add the item.
+    if (cart.items.length === 0 && !typeChosen) {
+      setPendingItem({ item, quantity });
+      setShowTypeDialog(true);
+      return;
+    }
+    addToCart(item, quantity);
+  };
 
-  const handleNewOrder = () => {
+
+
+
+  // Reset after an order is closed — no popup here; the type is asked again as
+  // soon as the next item is picked.
+  const resetAfterOrder = () => {
     cart.clearCart();
     setPaymentStatus('paid');
+    setTypeChosen(false);
+    setPendingItem(null);
+  };
+
+  const handleNewOrder = () => {
+    resetAfterOrder();
     setLastOrder(null);
     setShowTypeDialog(true);
   };
+
 
   const handlePhoneChange = (phone: string) => {
     cart.setCustomerPhone(phone);
@@ -172,7 +195,7 @@ const Index = () => {
     const newOrder = addOrder(orderData);
     setLastOrder(newOrder);
     toast({ title: 'Order placed!', description: `${newOrder.id} - Rs.${newOrder.total}` });
-    handleNewOrder();
+    resetAfterOrder();
   };
 
   const handleStartDay = () => {
@@ -443,7 +466,16 @@ const Index = () => {
               { value: 'car', label: 'Car Order' },
             ] as const).map(t => (
               <Button key={t.value} variant="outline" className="h-14 text-sm"
-                onClick={() => { cart.setOrderType(t.value); setShowTypeDialog(false); }}>
+                onClick={() => {
+                  cart.setOrderType(t.value);
+                  setTypeChosen(true);
+                  setShowTypeDialog(false);
+                  if (pendingItem) {
+                    addToCart(pendingItem.item, pendingItem.quantity);
+                    setPendingItem(null);
+                  }
+                }}>
+
                 {t.label}
               </Button>
             ))}

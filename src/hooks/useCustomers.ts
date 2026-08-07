@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react';
 import { Customer } from '@/lib/menu';
+import { useSyncRefresh } from '@/hooks/useSyncRefresh';
 
 const STORAGE_KEY = 'rabbani_customers';
 
@@ -13,10 +14,7 @@ function load(): Customer[] {
 export function useCustomers() {
   const [customers, setCustomers] = useState<Customer[]>(load);
 
-  const save = (c: Customer[]) => {
-    setCustomers(c);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(c));
-  };
+  useSyncRefresh([STORAGE_KEY], useCallback(() => setCustomers(load()), []));
 
   const findByPhone = useCallback((phone: string) => customers.find(c => c.phone === phone), [customers]);
 
@@ -27,21 +25,31 @@ export function useCustomers() {
 
   const saveCustomer = useCallback((data: { name: string; phone: string; address: string; deliveryCharges?: number }) => {
     if (!data.phone) return;
-    const existing = customers.find(c => c.phone === data.phone);
-    if (existing) {
-      save(customers.map(c => c.phone === data.phone ? { ...c, name: data.name || c.name, address: data.address || c.address, deliveryCharges: data.deliveryCharges ?? c.deliveryCharges } : c));
-    } else {
-      save([...customers, { id: `C-${Date.now()}`, ...data }]);
-    }
-  }, [customers]);
+    setCustomers(previous => {
+      const existing = previous.find(c => c.phone === data.phone);
+      const updated = existing
+        ? previous.map(c => c.phone === data.phone ? { ...c, name: data.name || c.name, address: data.address || c.address, deliveryCharges: data.deliveryCharges ?? c.deliveryCharges } : c)
+        : [...previous, { id: `C-${Date.now()}`, ...data }];
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+      return updated;
+    });
+  }, []);
 
   const updateCustomer = useCallback((id: string, data: Partial<Customer>) => {
-    save(customers.map(c => c.id === id ? { ...c, ...data } : c));
-  }, [customers]);
+    setCustomers(previous => {
+      const updated = previous.map(c => c.id === id ? { ...c, ...data } : c);
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+      return updated;
+    });
+  }, []);
 
   const deleteCustomer = useCallback((id: string) => {
-    save(customers.filter(c => c.id !== id));
-  }, [customers]);
+    setCustomers(previous => {
+      const updated = previous.filter(c => c.id !== id);
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+      return updated;
+    });
+  }, []);
 
   return { customers, findByPhone, searchByPhone, saveCustomer, updateCustomer, deleteCustomer };
 }

@@ -297,6 +297,9 @@ export async function initPosSync() {
     window.location.reload();
     return;
   }
+  if (changed) {
+    window.dispatchEvent(new CustomEvent('rabbani-sync-updated', { detail: '*' }));
+  }
   void flush();
 
   supabase

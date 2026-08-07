@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react';
+import { useSyncRefresh } from '@/hooks/useSyncRefresh';
 
 const TABLES_KEY = 'rabbani_tables';
 const WAITERS_KEY = 'rabbani_waiters';
@@ -20,65 +21,95 @@ export function useStaffAndTables() {
   const [waiters, setWaiters] = useState<string[]>(() => load(WAITERS_KEY, []));
   const [riders, setRiders] = useState<string[]>(() => load(RIDERS_KEY, []));
 
+  useSyncRefresh([TABLES_KEY, WAITERS_KEY, RIDERS_KEY], useCallback(() => {
+    setTables(load(TABLES_KEY, ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10']));
+    setWaiters(load(WAITERS_KEY, []));
+    setRiders(load(RIDERS_KEY, []));
+  }, []));
+
   const addTable = useCallback((name: string) => {
-    if (!name.trim() || tables.includes(name.trim())) return;
-    const updated = [...tables, name.trim()];
-    setTables(updated);
-    save(TABLES_KEY, updated);
-  }, [tables]);
+    const clean = name.trim();
+    if (!clean) return;
+    setTables(previous => {
+      if (previous.includes(clean)) return previous;
+      const updated = [...previous, clean];
+      save(TABLES_KEY, updated);
+      return updated;
+    });
+  }, []);
 
   const removeTable = useCallback((name: string) => {
-    const updated = tables.filter(t => t !== name);
-    setTables(updated);
-    save(TABLES_KEY, updated);
-  }, [tables]);
+    setTables(previous => {
+      const updated = previous.filter(t => t !== name);
+      save(TABLES_KEY, updated);
+      return updated;
+    });
+  }, []);
 
   const editTable = useCallback((old: string, newName: string) => {
     if (!newName.trim()) return;
-    const updated = tables.map(t => t === old ? newName.trim() : t);
-    setTables(updated);
-    save(TABLES_KEY, updated);
-  }, [tables]);
+    setTables(previous => {
+      const updated = previous.map(t => t === old ? newName.trim() : t);
+      save(TABLES_KEY, updated);
+      return updated;
+    });
+  }, []);
 
   const addWaiter = useCallback((name: string) => {
-    if (!name.trim() || waiters.includes(name.trim())) return;
-    const updated = [...waiters, name.trim()];
-    setWaiters(updated);
-    save(WAITERS_KEY, updated);
-  }, [waiters]);
+    const clean = name.trim();
+    if (!clean) return;
+    setWaiters(previous => {
+      if (previous.includes(clean)) return previous;
+      const updated = [...previous, clean];
+      save(WAITERS_KEY, updated);
+      return updated;
+    });
+  }, []);
 
   const removeWaiter = useCallback((name: string) => {
-    const updated = waiters.filter(w => w !== name);
-    setWaiters(updated);
-    save(WAITERS_KEY, updated);
-  }, [waiters]);
+    setWaiters(previous => {
+      const updated = previous.filter(w => w !== name);
+      save(WAITERS_KEY, updated);
+      return updated;
+    });
+  }, []);
 
   const editWaiter = useCallback((old: string, newName: string) => {
     if (!newName.trim()) return;
-    const updated = waiters.map(w => w === old ? newName.trim() : w);
-    setWaiters(updated);
-    save(WAITERS_KEY, updated);
-  }, [waiters]);
+    setWaiters(previous => {
+      const updated = previous.map(w => w === old ? newName.trim() : w);
+      save(WAITERS_KEY, updated);
+      return updated;
+    });
+  }, []);
 
   const addRider = useCallback((name: string) => {
-    if (!name.trim() || riders.includes(name.trim())) return;
-    const updated = [...riders, name.trim()];
-    setRiders(updated);
-    save(RIDERS_KEY, updated);
-  }, [riders]);
+    const clean = name.trim();
+    if (!clean) return;
+    setRiders(previous => {
+      if (previous.includes(clean)) return previous;
+      const updated = [...previous, clean];
+      save(RIDERS_KEY, updated);
+      return updated;
+    });
+  }, []);
 
   const removeRider = useCallback((name: string) => {
-    const updated = riders.filter(r => r !== name);
-    setRiders(updated);
-    save(RIDERS_KEY, updated);
-  }, [riders]);
+    setRiders(previous => {
+      const updated = previous.filter(r => r !== name);
+      save(RIDERS_KEY, updated);
+      return updated;
+    });
+  }, []);
 
   const editRider = useCallback((old: string, newName: string) => {
     if (!newName.trim()) return;
-    const updated = riders.map(r => r === old ? newName.trim() : r);
-    setRiders(updated);
-    save(RIDERS_KEY, updated);
-  }, [riders]);
+    setRiders(previous => {
+      const updated = previous.map(r => r === old ? newName.trim() : r);
+      save(RIDERS_KEY, updated);
+      return updated;
+    });
+  }, []);
 
   return {
     tables, addTable, removeTable, editTable,

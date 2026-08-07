@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { MenuItem, CartItem } from '@/lib/menu';
 import { useSyncRefresh } from '@/hooks/useSyncRefresh';
 
@@ -34,6 +34,7 @@ function saveCartState(state: CartState) {
 
 export function useCart() {
   const initial = loadCart();
+  const skipSyncedSave = useRef(false);
   const [items, setItems] = useState<CartItem[]>(initial.items);
   const [discount, setDiscount] = useState(initial.discount);
   const [discountType, setDiscountType] = useState<'percent' | 'amount'>(initial.discountType);
@@ -48,12 +49,20 @@ export function useCart() {
   const [waiterName, setWaiterName] = useState(initial.waiterName);
 
   useEffect(() => {
+    // A remote refresh already wrote the complete cart to localStorage. Do not
+    // echo that refresh back as a new local revision (which could win a race
+    // against the user's next edit on another device).
+    if (skipSyncedSave.current) {
+      skipSyncedSave.current = false;
+      return;
+    }
     saveCartState({ items, discount, discountType, extraCharges, orderType, customerName, customerPhone, customerAddress, deliveryCharges, tableNumber, riderName, waiterName });
   }, [items, discount, discountType, extraCharges, orderType, customerName, customerPhone, customerAddress, deliveryCharges, tableNumber, riderName, waiterName]);
 
   // Live cart sync: another device changed the cart -> mirror it here.
   useSyncRefresh([CART_STORAGE_KEY], useCallback(() => {
     const s = loadCart();
+    skipSyncedSave.current = true;
     setItems(s.items);
     setDiscount(s.discount);
     setDiscountType(s.discountType);

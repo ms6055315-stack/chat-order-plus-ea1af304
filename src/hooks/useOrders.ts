@@ -67,43 +67,56 @@ export function useOrders() {
       id: `ORD-${Date.now().toString(36).toUpperCase()}`,
       createdAt: new Date(),
     };
-    const updated = [...orders, order];
-    setOrders(updated);
-    saveOrders(updated);
+    setOrders(previous => {
+      // Functional updates prevent rapid placements or a simultaneous sync
+      // refresh from saving an older array over a newly placed order.
+      const updated = [...previous, order];
+      saveOrders(updated);
+      return updated;
+    });
 
-    if (currentSession) {
-      const updatedSession = { ...currentSession, orders: [...currentSession.orders, order] };
-      setCurrentSession(updatedSession);
+    setCurrentSession(previous => {
+      if (!previous) return previous;
+      const updatedSession = { ...previous, orders: [...previous.orders, order] };
       saveSession(updatedSession);
-    }
+      return updatedSession;
+    });
     return order;
-  }, [orders, currentSession]);
+  }, []);
 
   const updateOrderStatus = useCallback((id: string, status: Order['status']) => {
-    const updated = orders.map(o => o.id === id ? { ...o, status } : o);
-    setOrders(updated);
-    saveOrders(updated);
-  }, [orders]);
+    setOrders(previous => {
+      const updated = previous.map(o => o.id === id ? { ...o, status } : o);
+      saveOrders(updated);
+      return updated;
+    });
+  }, []);
 
   const updateOrder = useCallback((id: string, data: Partial<Order>) => {
-    const updated = orders.map(o => o.id === id ? { ...o, ...data } : o);
-    setOrders(updated);
-    saveOrders(updated);
-  }, [orders]);
+    setOrders(previous => {
+      const updated = previous.map(o => o.id === id ? { ...o, ...data } : o);
+      saveOrders(updated);
+      return updated;
+    });
+  }, []);
 
   const deleteOrder = useCallback((id: string) => {
-    const updated = orders.filter(o => o.id !== id);
-    setOrders(updated);
-    saveOrders(updated);
-  }, [orders]);
+    setOrders(previous => {
+      const updated = previous.filter(o => o.id !== id);
+      saveOrders(updated);
+      return updated;
+    });
+  }, []);
 
   const clearNonSelfOrders = useCallback(() => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    const updated = orders.filter(o => o.orderType === 'self' || new Date(o.createdAt) < today);
-    setOrders(updated);
-    saveOrders(updated);
-  }, [orders]);
+    setOrders(previous => {
+      const updated = previous.filter(o => o.orderType === 'self' || new Date(o.createdAt) < today);
+      saveOrders(updated);
+      return updated;
+    });
+  }, []);
 
   const getTodayStats = useCallback(() => {
     const today = new Date();

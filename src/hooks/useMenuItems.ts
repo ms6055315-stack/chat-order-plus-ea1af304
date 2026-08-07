@@ -31,25 +31,33 @@ export function useMenuItems() {
 
 
 
-  const save = (newItems: MenuItem[]) => {
-    setItems(newItems);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(newItems));
-  };
-
   const addItem = useCallback((item: Omit<MenuItem, 'id'>) => {
-    save([...items, { ...item, id: `custom-${Date.now()}` }]);
-  }, [items]);
+    setItems(previous => {
+      const updated = [...previous, { ...item, id: `custom-${Date.now()}` }];
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+      return updated;
+    });
+  }, []);
 
   const updateItem = useCallback((id: string, data: Partial<MenuItem>) => {
-    save(items.map(i => i.id === id ? { ...i, ...data } : i));
-  }, [items]);
+    setItems(previous => {
+      const updated = previous.map(i => i.id === id ? { ...i, ...data } : i);
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+      return updated;
+    });
+  }, []);
 
   const deleteItem = useCallback((id: string) => {
-    save(items.filter(i => i.id !== id));
-  }, [items]);
+    setItems(previous => {
+      const updated = previous.filter(i => i.id !== id);
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+      return updated;
+    });
+  }, []);
 
   const resetToDefault = useCallback(() => {
-    save(DEFAULT_MENU_ITEMS);
+    setItems(DEFAULT_MENU_ITEMS);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(DEFAULT_MENU_ITEMS));
     setCategories(CATEGORIES);
     localStorage.setItem(CAT_STORAGE_KEY, JSON.stringify(CATEGORIES));
   }, []);

@@ -70,9 +70,13 @@ function queueKey(key: string, ts: number) {
   rawSet(QUEUE_KEY, JSON.stringify(q));
 }
 
-function unqueue(keys: string[]) {
+function unqueueCompleted(snapshot: Record<string, number>) {
   const q = getQueue();
-  for (const k of keys) delete q[k];
+  // A key may have changed again while its previous upload was in flight.
+  // Only remove the exact revision we sent; never drop a newer local edit.
+  for (const [key, sentAt] of Object.entries(snapshot)) {
+    if (q[key] === sentAt) delete q[key];
+  }
   rawSet(QUEUE_KEY, JSON.stringify(q));
 }
 
@@ -176,7 +180,7 @@ async function flush() {
       console.warn('POS sync push failed (will retry)', error.message);
       return;
     }
-    unqueue(keys);
+    unqueueCompleted(q);
   } finally {
     flushing = false;
   }
@@ -256,7 +260,9 @@ export async function initPosSync() {
   // is disabled or offline — that's what makes reconnection safe.
   nativeSetItem = localStorage.setItem.bind(localStorage);
   const patched = (key: string, value: string) => {
-    nativeSetItem!(key, value);
+    const setItem = nativeSetItem;
+    if (!setItem) return;
+    setItem(key, value);
     if (applyingRemote || !isSyncedKey(key)) return;
     const ts = Date.now();
     setLocalStamp(key, ts);
@@ -281,12 +287,16 @@ export async function initPosSync() {
   const code = getSyncCode();
   if (!code) return;
 
+  // Protect everything already stored on this device BEFORE reading cloud
+  // state. Previously the pull ran first, so an old/empty cloud snapshot could
+  // replace orders, cart or menu data when the app started or reconnected.
+  // A genuinely new device has no local keys, so it can still hydrate normally.
+  queueAllLocal();
   const changed = await pullAll();
   if (joined && changed) {
     window.location.reload();
     return;
   }
-  queueAllLocal();
   void flush();
 
   supabase

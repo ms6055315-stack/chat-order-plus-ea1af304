@@ -181,6 +181,7 @@ export default function OrdersPage() {
   // Pull an order back into the POS cart for editing, then remove it from the list.
   const handleEditInCart = (order: Order) => {
     localStorage.setItem('rabbani_cart', JSON.stringify({
+      draftOrderId: order.id,
       items: order.items,
       discount: order.discount || 0,
       discountType: order.discountType || 'percent',
@@ -195,8 +196,7 @@ export default function OrdersPage() {
       waiterName: order.waiterName || '',
     }));
     window.dispatchEvent(new CustomEvent('rabbani-sync-updated', { detail: 'rabbani_cart' }));
-    deleteOrder(order.id);
-    toast({ title: 'Order moved to cart', description: `${order.id} is now editable in the POS cart` });
+    toast({ title: 'Order opened in cart', description: `${order.id} is now editable in the POS cart` });
     navigate('/');
   };
 

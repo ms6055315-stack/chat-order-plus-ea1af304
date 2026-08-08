@@ -2,7 +2,6 @@ import { useState, useCallback } from 'react';
 import { Order, DaySession, CartItem } from '@/lib/menu';
 import { useSyncRefresh } from '@/hooks/useSyncRefresh';
 
-
 const STORAGE_KEY = 'rabbani_orders';
 const SESSION_KEY = 'rabbani_session';
 
@@ -42,7 +41,6 @@ export function useOrders() {
 
   const isDayOpen = !!currentSession && !currentSession.endedAt;
 
-
   const startDay = useCallback((openingCash: number) => {
     const session: DaySession = {
       id: `S-${Date.now()}`,
@@ -68,13 +66,10 @@ export function useOrders() {
       createdAt: new Date(),
     };
     setOrders(previous => {
-      // Functional updates prevent rapid placements or a simultaneous sync
-      // refresh from saving an older array over a newly placed order.
       const updated = [...previous, order];
       saveOrders(updated);
       return updated;
     });
-
     setCurrentSession(previous => {
       if (!previous) return previous;
       const updatedSession = { ...previous, orders: [...previous.orders, order] };
@@ -103,9 +98,7 @@ export function useOrders() {
   const saveDraftOrder = useCallback((order: Order) => {
     setOrders(previous => {
       const exists = previous.some(o => o.id === order.id);
-      const updated = exists
-        ? previous.map(o => o.id === order.id ? order : o)
-        : [...previous, order];
+      const updated = exists ? previous.map(o => o.id === order.id ? order : o) : [...previous, order];
       saveOrders(updated);
       return updated;
     });
@@ -119,11 +112,13 @@ export function useOrders() {
     });
   }, []);
 
-  const clearNonSelfOrders = useCallback(() => {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+  const purgeOldOrders = useCallback(() => {
+    const fortyDaysAgo = new Date();
+    fortyDaysAgo.setDate(fortyDaysAgo.getDate() - 40);
+    fortyDaysAgo.setHours(0, 0, 0, 0);
     setOrders(previous => {
-      const updated = previous.filter(o => o.orderType === 'self' || new Date(o.createdAt) < today);
+      // Keep self-service orders and anything from last 40 days
+      const updated = previous.filter(o => o.orderType === 'self' || new Date(o.createdAt) >= fortyDaysAgo);
       saveOrders(updated);
       return updated;
     });
@@ -155,5 +150,5 @@ export function useOrders() {
     };
   }, [orders]);
 
-  return { orders, isDayOpen, currentSession, startDay, endDay, addOrder, saveDraftOrder, updateOrderStatus, updateOrder, deleteOrder, clearNonSelfOrders, getTodayStats };
+  return { orders, isDayOpen, currentSession, startDay, endDay, addOrder, saveDraftOrder, updateOrderStatus, updateOrder, deleteOrder, purgeOldOrders, clearNonSelfOrders: purgeOldOrders, getTodayStats };
 }

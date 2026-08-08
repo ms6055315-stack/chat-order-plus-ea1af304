@@ -5,6 +5,7 @@ import { useSyncRefresh } from '@/hooks/useSyncRefresh';
 const CART_STORAGE_KEY_PREFIX = 'rabbani_cart_';
 
 interface CartState {
+  draftOrderId: string;
   items: CartItem[];
   discount: number;
   discountType: 'percent' | 'amount';
@@ -21,6 +22,7 @@ interface CartState {
 
 function getInitialState(type: string = 'dine-in'): CartState {
   return {
+    draftOrderId: `ORD-${Date.now().toString(36).toUpperCase()}-${Math.random().toString(36).slice(2, 6).toUpperCase()}`,
     items: [],
     discount: 0,
     discountType: 'percent',
@@ -40,7 +42,8 @@ function loadCartForType(type: string): CartState {
   try {
     const data = localStorage.getItem(`${CART_STORAGE_KEY_PREFIX}${type}`);
     if (!data) return getInitialState(type);
-    return JSON.parse(data);
+    const parsed = JSON.parse(data) as Partial<CartState>;
+    return { ...getInitialState(type), ...parsed, orderType: type };
   } catch {
     return getInitialState(type);
   }
@@ -58,6 +61,7 @@ export function useCart() {
 
   const initial = loadCartForType(orderType);
   const skipSyncedSave = useRef(false);
+  const [draftOrderId, setDraftOrderId] = useState(initial.draftOrderId);
   const [items, setItems] = useState<CartItem[]>(initial.items);
   const [discount, setDiscount] = useState(initial.discount);
   const [discountType, setDiscountType] = useState<'percent' | 'amount'>(initial.discountType);
@@ -74,12 +78,13 @@ export function useCart() {
   const setOrderType = useCallback((newType: string) => {
     // Save current type's state first
     saveCartState(orderType, {
-      items, discount, discountType, extraCharges, orderType,
+      draftOrderId, items, discount, discountType, extraCharges, orderType,
       customerName, customerPhone, customerAddress, deliveryCharges,
       tableNumber, riderName, waiterName
     });
 
     const s = loadCartForType(newType);
+    setDraftOrderId(s.draftOrderId);
     setItems(s.items);
     setDiscount(s.discount);
     setDiscountType(s.discountType);
@@ -94,7 +99,7 @@ export function useCart() {
     
     setOrderTypeInternal(newType);
     localStorage.setItem('rabbani_last_order_type', newType);
-  }, [items, discount, discountType, extraCharges, orderType, customerName, customerPhone, customerAddress, deliveryCharges, tableNumber, riderName, waiterName]);
+  }, [draftOrderId, items, discount, discountType, extraCharges, orderType, customerName, customerPhone, customerAddress, deliveryCharges, tableNumber, riderName, waiterName]);
 
   // Auto-save the current active cart whenever it changes
   useEffect(() => {
@@ -102,13 +107,14 @@ export function useCart() {
       skipSyncedSave.current = false;
       return;
     }
-    saveCartState(orderType, { items, discount, discountType, extraCharges, orderType, customerName, customerPhone, customerAddress, deliveryCharges, tableNumber, riderName, waiterName });
-  }, [items, discount, discountType, extraCharges, orderType, customerName, customerPhone, customerAddress, deliveryCharges, tableNumber, riderName, waiterName]);
+    saveCartState(orderType, { draftOrderId, items, discount, discountType, extraCharges, orderType, customerName, customerPhone, customerAddress, deliveryCharges, tableNumber, riderName, waiterName });
+  }, [draftOrderId, items, discount, discountType, extraCharges, orderType, customerName, customerPhone, customerAddress, deliveryCharges, tableNumber, riderName, waiterName]);
 
   // Syncing is harder with multiple carts, but let's sync the current active one
   useSyncRefresh([`${CART_STORAGE_KEY_PREFIX}${orderType}`], useCallback(() => {
     const s = loadCartForType(orderType);
     skipSyncedSave.current = true;
+    setDraftOrderId(s.draftOrderId);
     setItems(s.items);
     setDiscount(s.discount);
     setDiscountType(s.discountType);
@@ -146,6 +152,7 @@ export function useCart() {
 
   const clearCart = useCallback(() => {
     const empty = getInitialState(orderType);
+    setDraftOrderId(empty.draftOrderId);
     setItems(empty.items);
     setDiscount(empty.discount);
     setDiscountType(empty.discountType);
@@ -166,7 +173,7 @@ export function useCart() {
   const total = Math.max(0, subtotal - discountAmount + extraCharges);
 
   return {
-    items, addItem, removeItem, updateQuantity, clearCart,
+    draftOrderId, items, addItem, removeItem, updateQuantity, clearCart,
     discount, discountType, setDiscount, setDiscountType,
     subtotal, discountAmount, total, extraCharges, setExtraCharges,
     orderType, setOrderType,

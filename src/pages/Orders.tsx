@@ -48,7 +48,6 @@ export default function OrdersPage() {
 
   const filteredOrders = orders.filter(o =>
     (new Date(o.createdAt) >= reportDate && new Date(o.createdAt) < nextDate) &&
-    new Date(o.createdAt) >= reportDate && new Date(o.createdAt) < nextDate &&
     o.orderType === activeTab &&
     o.orderType !== 'self' &&
     (statusTab === 'pending' ? !['completed', 'cancelled'].includes(o.status) : o.status === statusTab)

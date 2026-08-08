@@ -225,7 +225,7 @@ const Index = () => {
     const cash = parseFloat(closingCash);
     if (isNaN(cash) || cash < 0) return;
     endDay(cash);
-    // purgeOldOrders();
+    purgeOldOrders();
     setShowEndDayDialog(false);
     setClosingCash('');
     toast({ title: 'Day ended!', description: 'Day session closed. History retained for 40 days.' });

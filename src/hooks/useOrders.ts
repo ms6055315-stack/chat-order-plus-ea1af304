@@ -97,7 +97,9 @@ export function useOrders() {
 
   const saveDraftOrder = useCallback((order: Order) => {
     setOrders(previous => {
-      const exists = previous.some(o => o.id === order.id);
+      const existing = previous.find(o => o.id === order.id);
+      if (existing && JSON.stringify(existing) === JSON.stringify(order)) return previous;
+      const exists = !!existing;
       const updated = exists ? previous.map(o => o.id === order.id ? order : o) : [...previous, order];
       saveOrders(updated);
       return updated;

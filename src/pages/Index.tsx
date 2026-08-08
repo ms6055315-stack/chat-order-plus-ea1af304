@@ -89,7 +89,7 @@ const Index = () => {
 
   const handleItemClick = (item: MenuItem, quantity = 1) => {
     if (!isDayOpen) {
-      toast({ title: 'Day not started', description: 'Please start the day first!', variant: 'destructive' });
+      toast({ title: "Day not started", description: "Please start the day first!", variant: "destructive" });
       return;
     }
     addToCart(item, quantity);

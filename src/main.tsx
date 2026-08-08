@@ -2,8 +2,15 @@ import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
 import "./index.css";
 import { registerOfflineSW } from "./lib/registerSW";
+import { enableOfflineDataBackup, restoreOfflineData } from "./lib/durableStorage";
 
-createRoot(document.getElementById("root")!).render(<App />);
+const root = document.getElementById("root");
+if (!root) throw new Error("Application root was not found");
+
+void restoreOfflineData().finally(() => {
+  enableOfflineDataBackup();
+  createRoot(root).render(<App />);
+});
 
 registerOfflineSW();
 // Ask the browser to keep POS data safe from automatic eviction (offline use).

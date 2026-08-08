@@ -30,7 +30,7 @@ import { buildTokenHtml, dispatchPrint } from '@/lib/printing';
 const Index = () => {
   const navigate = useNavigate();
   const cart = useCart();
-  const { isDayOpen, currentSession, startDay, endDay, saveDraftOrder, getTodayStats, clearNonSelfOrders, orders } = useOrders();
+  const { isDayOpen, currentSession, startDay, endDay, saveDraftOrder, getTodayStats, orders, purgeOldOrders } = useOrders();
   const menu = useMenuItems();
   const { customers, searchByPhone, saveCustomer, updateCustomer, deleteCustomer } = useCustomers();
   const staff = useStaffAndTables();
@@ -247,7 +247,6 @@ const Index = () => {
     setDeliveryCharges: cart.setDeliveryCharges,
     setPaymentStatus: (s) => setPaymentStatus(s as any),
     closeOrder: handleCloseOrder,
-    newOrder: resetAfterOrder,
     menuItems: menu.items,
     cartItems: cart.items,
     orderType: cart.orderType,

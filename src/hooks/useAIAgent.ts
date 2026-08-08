@@ -62,7 +62,7 @@ export function useAIAgent() {
     }
 
     if (lower.includes('clear') || lower.includes('new order')) {
-      cb.newOrder();
+      cb.clearCart();
       return 'Cart cleared';
     }
 

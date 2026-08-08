@@ -138,6 +138,7 @@ export default function ReportsPage() {
             onChange={(e) => setSelectedDate(e.target.value)}
             className="h-8 text-xs w-36"
             max={new Date().toISOString().split('T')[0]}
+            min={new Date(Date.now() - 39 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]}
           />
         </div>
 

@@ -2,10 +2,10 @@ import { useState, useCallback, useEffect, useRef } from 'react';
 import { MenuItem, CartItem } from '@/lib/menu';
 import { useSyncRefresh } from '@/hooks/useSyncRefresh';
 
-
-const CART_STORAGE_KEY = 'rabbani_cart';
+const CART_STORAGE_KEY_PREFIX = 'rabbani_cart_';
 
 interface CartState {
+  draftOrderId: string;
   items: CartItem[];
   discount: number;
   discountType: 'percent' | 'amount';
@@ -20,26 +20,52 @@ interface CartState {
   waiterName: string;
 }
 
-function loadCart(): CartState {
-  try {
-    const data = localStorage.getItem(CART_STORAGE_KEY);
-    if (!data) return { items: [], discount: 0, discountType: 'percent', extraCharges: 0, orderType: 'dine-in', customerName: '', customerPhone: '', customerAddress: '', deliveryCharges: 0, tableNumber: '', riderName: '', waiterName: '' };
-    return JSON.parse(data);
-  } catch { return { items: [], discount: 0, discountType: 'percent', extraCharges: 0, orderType: 'dine-in', customerName: '', customerPhone: '', customerAddress: '', deliveryCharges: 0, tableNumber: '', riderName: '', waiterName: '' }; }
+function getInitialState(type: string = 'dine-in'): CartState {
+  return {
+    draftOrderId: `ORD-${Date.now().toString(36).toUpperCase()}-${Math.random().toString(36).slice(2, 6).toUpperCase()}`,
+    items: [],
+    discount: 0,
+    discountType: 'percent',
+    extraCharges: 0,
+    orderType: type,
+    customerName: '',
+    customerPhone: '',
+    customerAddress: '',
+    deliveryCharges: 0,
+    tableNumber: '',
+    riderName: '',
+    waiterName: '',
+  };
 }
 
-function saveCartState(state: CartState) {
-  localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(state));
+function loadCartForType(type: string): CartState {
+  try {
+    const data = localStorage.getItem(`${CART_STORAGE_KEY_PREFIX}${type}`);
+    if (!data) return getInitialState(type);
+    const parsed = JSON.parse(data) as Partial<CartState>;
+    return { ...getInitialState(type), ...parsed, orderType: type };
+  } catch {
+    return getInitialState(type);
+  }
+}
+
+function saveCartState(type: string, state: CartState) {
+  localStorage.setItem(`${CART_STORAGE_KEY_PREFIX}${type}`, JSON.stringify(state));
 }
 
 export function useCart() {
-  const initial = loadCart();
+  const [orderType, setOrderTypeInternal] = useState<string>(() => {
+    // Try to find the last used order type or default to dine-in
+    return localStorage.getItem('rabbani_last_order_type') || 'dine-in';
+  });
+
+  const initial = loadCartForType(orderType);
   const skipSyncedSave = useRef(false);
+  const [draftOrderId, setDraftOrderId] = useState(initial.draftOrderId);
   const [items, setItems] = useState<CartItem[]>(initial.items);
   const [discount, setDiscount] = useState(initial.discount);
   const [discountType, setDiscountType] = useState<'percent' | 'amount'>(initial.discountType);
   const [extraCharges, setExtraCharges] = useState(initial.extraCharges);
-  const [orderType, setOrderType] = useState(initial.orderType);
   const [customerName, setCustomerName] = useState(initial.customerName);
   const [customerPhone, setCustomerPhone] = useState(initial.customerPhone);
   const [customerAddress, setCustomerAddress] = useState(initial.customerAddress);
@@ -48,26 +74,21 @@ export function useCart() {
   const [riderName, setRiderName] = useState(initial.riderName);
   const [waiterName, setWaiterName] = useState(initial.waiterName);
 
-  useEffect(() => {
-    // A remote refresh already wrote the complete cart to localStorage. Do not
-    // echo that refresh back as a new local revision (which could win a race
-    // against the user's next edit on another device).
-    if (skipSyncedSave.current) {
-      skipSyncedSave.current = false;
-      return;
-    }
-    saveCartState({ items, discount, discountType, extraCharges, orderType, customerName, customerPhone, customerAddress, deliveryCharges, tableNumber, riderName, waiterName });
-  }, [items, discount, discountType, extraCharges, orderType, customerName, customerPhone, customerAddress, deliveryCharges, tableNumber, riderName, waiterName]);
+  // When orderType changes, load that type's cart
+  const setOrderType = useCallback((newType: string) => {
+    // Save current type's state first
+    saveCartState(orderType, {
+      draftOrderId, items, discount, discountType, extraCharges, orderType,
+      customerName, customerPhone, customerAddress, deliveryCharges,
+      tableNumber, riderName, waiterName
+    });
 
-  // Live cart sync: another device changed the cart -> mirror it here.
-  useSyncRefresh([CART_STORAGE_KEY], useCallback(() => {
-    const s = loadCart();
-    skipSyncedSave.current = true;
+    const s = loadCartForType(newType);
+    setDraftOrderId(s.draftOrderId);
     setItems(s.items);
     setDiscount(s.discount);
     setDiscountType(s.discountType);
     setExtraCharges(s.extraCharges);
-    setOrderType(s.orderType);
     setCustomerName(s.customerName);
     setCustomerPhone(s.customerPhone);
     setCustomerAddress(s.customerAddress);
@@ -75,8 +96,37 @@ export function useCart() {
     setTableNumber(s.tableNumber);
     setRiderName(s.riderName);
     setWaiterName(s.waiterName);
-  }, []));
+    
+    setOrderTypeInternal(newType);
+    localStorage.setItem('rabbani_last_order_type', newType);
+  }, [draftOrderId, items, discount, discountType, extraCharges, orderType, customerName, customerPhone, customerAddress, deliveryCharges, tableNumber, riderName, waiterName]);
 
+  // Auto-save the current active cart whenever it changes
+  useEffect(() => {
+    if (skipSyncedSave.current) {
+      skipSyncedSave.current = false;
+      return;
+    }
+    saveCartState(orderType, { draftOrderId, items, discount, discountType, extraCharges, orderType, customerName, customerPhone, customerAddress, deliveryCharges, tableNumber, riderName, waiterName });
+  }, [draftOrderId, items, discount, discountType, extraCharges, orderType, customerName, customerPhone, customerAddress, deliveryCharges, tableNumber, riderName, waiterName]);
+
+  // Syncing is harder with multiple carts, but let's sync the current active one
+  useSyncRefresh([`${CART_STORAGE_KEY_PREFIX}${orderType}`], useCallback(() => {
+    const s = loadCartForType(orderType);
+    skipSyncedSave.current = true;
+    setDraftOrderId(s.draftOrderId);
+    setItems(s.items);
+    setDiscount(s.discount);
+    setDiscountType(s.discountType);
+    setExtraCharges(s.extraCharges);
+    setCustomerName(s.customerName);
+    setCustomerPhone(s.customerPhone);
+    setCustomerAddress(s.customerAddress);
+    setDeliveryCharges(s.deliveryCharges);
+    setTableNumber(s.tableNumber);
+    setRiderName(s.riderName);
+    setWaiterName(s.waiterName);
+  }, [orderType]));
 
   const addItem = useCallback((item: MenuItem) => {
     setItems(prev => {
@@ -101,26 +151,29 @@ export function useCart() {
   }, []);
 
   const clearCart = useCallback(() => {
-    setItems([]);
-    setDiscount(0);
-    setDiscountType('percent');
-    setExtraCharges(0);
-    setOrderType('dine-in');
-    setCustomerName('');
-    setCustomerPhone('');
-    setCustomerAddress('');
-    setDeliveryCharges(0);
-    setTableNumber('');
-    setRiderName('');
-    setWaiterName('');
-  }, []);
+    const empty = getInitialState(orderType);
+    setDraftOrderId(empty.draftOrderId);
+    setItems(empty.items);
+    setDiscount(empty.discount);
+    setDiscountType(empty.discountType);
+    setExtraCharges(empty.extraCharges);
+    setCustomerName(empty.customerName);
+    setCustomerPhone(empty.customerPhone);
+    setCustomerAddress(empty.customerAddress);
+    setDeliveryCharges(empty.deliveryCharges);
+    setTableNumber(empty.tableNumber);
+    setRiderName(empty.riderName);
+    setWaiterName(empty.waiterName);
+    // Explicitly clear from storage too
+    saveCartState(orderType, empty);
+  }, [orderType]);
 
   const subtotal = items.reduce((sum, i) => sum + i.price * i.quantity, 0);
   const discountAmount = discountType === 'percent' ? subtotal * discount / 100 : discount;
   const total = Math.max(0, subtotal - discountAmount + extraCharges);
 
   return {
-    items, addItem, removeItem, updateQuantity, clearCart,
+    draftOrderId, items, addItem, removeItem, updateQuantity, clearCart,
     discount, discountType, setDiscount, setDiscountType,
     subtotal, discountAmount, total, extraCharges, setExtraCharges,
     orderType, setOrderType,

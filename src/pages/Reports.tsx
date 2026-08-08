@@ -1,9 +1,9 @@
-import { useState, useRef } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useOrders } from '@/hooks/useOrders';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { ArrowLeft, Search, Printer } from 'lucide-react';
+import { ArrowLeft, Search, Printer, Calendar } from 'lucide-react';
 import { loadPOSConfig } from '@/pages/POSSettings';
 
 export default function ReportsPage() {
@@ -11,28 +11,34 @@ export default function ReportsPage() {
   const { orders } = useOrders();
   const [categorySearch, setCategorySearch] = useState('');
   const [tab, setTab] = useState<'summary' | 'category'>('summary');
+  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const posConfig = loadPOSConfig();
 
-  // Exclude self-service orders from reports
+  // Filter orders for the selected date
+  const reportDate = new Date(selectedDate);
+  reportDate.setHours(0, 0, 0, 0);
+  const nextDate = new Date(reportDate);
+  nextDate.setDate(nextDate.getDate() + 1);
+
   const allOrders = orders.filter(o => o.orderType !== 'self');
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
+  const filteredOrders = allOrders.filter(o => {
+    const d = new Date(o.createdAt);
+    return d >= reportDate && d < nextDate;
+  });
 
-  const todayOrders = allOrders.filter(o => new Date(o.createdAt) >= today);
-  const completedToday = todayOrders.filter(o => o.status === 'completed' || o.status === 'pending');
-  const cancelledToday = todayOrders.filter(o => o.status === 'cancelled');
-
-  const totalSales = completedToday.reduce((s, o) => s + o.total, 0);
+  const completedOrders = filteredOrders.filter(o => o.status === 'completed' || o.status === 'pending');
+  const cancelledOrders = filteredOrders.filter(o => o.status === 'cancelled');
+  const totalSales = completedOrders.reduce((s, o) => s + o.total, 0);
+  
   const byType = {
-    'dine-in': completedToday.filter(o => o.orderType === 'dine-in'),
-    'takeout': completedToday.filter(o => o.orderType === 'takeout'),
-    'delivery': completedToday.filter(o => o.orderType === 'delivery'),
-    'car': completedToday.filter(o => o.orderType === 'car'),
+    'dine-in': completedOrders.filter(o => o.orderType === 'dine-in'),
+    'takeout': completedOrders.filter(o => o.orderType === 'takeout'),
+    'delivery': completedOrders.filter(o => o.orderType === 'delivery'),
+    'car': completedOrders.filter(o => o.orderType === 'car'),
   };
 
-  // Sales by category
   const categoryMap: Record<string, { items: Record<string, { name: string; qty: number; revenue: number }>; totalQty: number; totalRevenue: number }> = {};
-  completedToday.forEach(order => {
+  completedOrders.forEach(order => {
     order.items.forEach((item: any) => {
       const cat = item.category || 'Uncategorized';
       if (!categoryMap[cat]) categoryMap[cat] = { items: {}, totalQty: 0, totalRevenue: 0 };
@@ -50,7 +56,7 @@ export default function ReportsPage() {
 
   const printReport = () => {
     const html = `
-      <html><head><title>Sales Report</title>
+      <html><head><title>Sales Report - ${selectedDate}</title>
       <style>
         body { font-family: Arial, sans-serif; padding: 20px; font-size: 12px; }
         h1 { font-size: 16px; margin-bottom: 4px; }
@@ -63,15 +69,15 @@ export default function ReportsPage() {
         .section-title { font-size: 13px; font-weight: bold; margin-bottom: 8px; border-bottom: 1px solid #333; padding-bottom: 4px; }
       </style></head><body>
       <h1>${posConfig.shopName} - Sales Report</h1>
-      <div class="subtitle">${new Date().toLocaleDateString()} | ${new Date().toLocaleTimeString()}</div>
+      <div class="subtitle">Date: ${selectedDate} | Printed: ${new Date().toLocaleString()}</div>
       
       <div class="section">
         <div class="section-title">Summary</div>
         <table>
-          <tr><td>Total Orders</td><td><strong>${completedToday.length}</strong></td></tr>
+          <tr><td>Total Orders</td><td><strong>${completedOrders.length}</strong></td></tr>
           <tr><td>Total Sales</td><td><strong>Rs.${totalSales}</strong></td></tr>
-          <tr><td>Cancelled Orders</td><td>${cancelledToday.length}</td></tr>
-          <tr><td>Average Order</td><td>Rs.${completedToday.length ? Math.round(totalSales / completedToday.length) : 0}</td></tr>
+          <tr><td>Cancelled Orders</td><td>${cancelledOrders.length}</td></tr>
+          <tr><td>Average Order</td><td>Rs.${completedOrders.length ? Math.round(totalSales / completedOrders.length) : 0}</td></tr>
         </table>
       </div>
 
@@ -99,10 +105,10 @@ export default function ReportsPage() {
       </div>
 
       <div class="section">
-        <div class="section-title">All Orders</div>
+        <div class="section-title">Order List</div>
         <table>
           <tr><th>ID</th><th>Type</th><th>Status</th><th>Total</th><th>Time</th></tr>
-          ${todayOrders.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()).map(o => `
+          ${filteredOrders.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()).map(o => `
             <tr><td>${o.id}</td><td style="text-transform:capitalize">${o.orderType}</td><td>${o.status}</td><td>Rs.${o.total}</td><td>${new Date(o.createdAt).toLocaleTimeString()}</td></tr>
           `).join('')}
         </table>
@@ -116,59 +122,48 @@ export default function ReportsPage() {
     setTimeout(() => { iframe.contentWindow?.print(); setTimeout(() => iframe.remove(), 1000); }, 300);
   };
 
-  const printCategory = (cat: string, data: typeof categoryMap[string]) => {
-    const html = `
-      <html><head><title>${cat} Report</title>
-      <style>
-        body { font-family: Arial, sans-serif; padding: 20px; font-size: 12px; }
-        h1 { font-size: 16px; margin-bottom: 4px; }
-        .subtitle { color: #666; font-size: 11px; margin-bottom: 16px; }
-        table { width: 100%; border-collapse: collapse; margin: 10px 0; }
-        th, td { border: 1px solid #ddd; padding: 6px 8px; text-align: left; }
-        th { background: #f5f5f5; font-weight: bold; }
-        .total-row { font-weight: bold; background: #f0f0f0; }
-      </style></head><body>
-      <h1>${posConfig.shopName} - ${cat}</h1>
-      <div class="subtitle">${new Date().toLocaleDateString()} | Total: ${data.totalQty} items | Rs.${data.totalRevenue}</div>
-      <table>
-        <tr><th>Item</th><th>Qty Sold</th><th>Revenue</th></tr>
-        ${Object.values(data.items).sort((a, b) => b.revenue - a.revenue).map(item => `
-          <tr><td>${item.name}</td><td>${item.qty}</td><td>Rs.${item.revenue}</td></tr>
-        `).join('')}
-        <tr class="total-row"><td>Total</td><td>${data.totalQty}</td><td>Rs.${data.totalRevenue}</td></tr>
-      </table>
-      </body></html>`;
-    const iframe = document.createElement('iframe');
-    iframe.style.display = 'none';
-    document.body.appendChild(iframe);
-    iframe.contentDocument?.write(html);
-    iframe.contentDocument?.close();
-    setTimeout(() => { iframe.contentWindow?.print(); setTimeout(() => iframe.remove(), 1000); }, 300);
-  };
-
   return (
-    <div className="min-h-screen bg-background">
-      <header className="bg-card border-b border-border p-2 flex items-center gap-3">
+    <div className="min-h-screen bg-background text-foreground">
+      <header className="bg-card border-b border-border p-2 flex items-center gap-3 sticky top-0 z-10">
         <Button variant="outline" size="sm" onClick={() => navigate('/')} className="gap-1 h-8">
           <ArrowLeft className="h-3.5 w-3.5" /> Back
         </Button>
-        <h1 className="text-lg font-bold text-primary">Sales Report</h1>
-        <div className="flex gap-1 ml-4">
-          <Button variant={tab === 'summary' ? 'default' : 'outline'} size="sm" onClick={() => setTab('summary')} className="h-7 text-xs">Summary</Button>
-          <Button variant={tab === 'category' ? 'default' : 'outline'} size="sm" onClick={() => setTab('category')} className="h-7 text-xs">Sales by Category</Button>
+        <h1 className="text-lg font-bold text-primary hidden md:block">Sales Report</h1>
+        
+        <div className="flex items-center gap-2 ml-auto md:ml-4">
+          <Calendar className="h-4 w-4 text-muted-foreground" />
+          <Input 
+            type="date" 
+            value={selectedDate} 
+            onChange={(e) => setSelectedDate(e.target.value)}
+            className="h-8 text-xs w-36"
+            max={new Date().toISOString().split('T')[0]}
+            min={new Date(Date.now() - 39 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]}
+          />
         </div>
+
+        <div className="flex gap-1 ml-2">
+          <Button variant={tab === 'summary' ? 'default' : 'outline'} size="sm" onClick={() => setTab('summary')} className="h-7 text-xs px-2 md:px-3">Summary</Button>
+          <Button variant={tab === 'category' ? 'default' : 'outline'} size="sm" onClick={() => setTab('category')} className="h-7 text-xs px-2 md:px-3">By Category</Button>
+        </div>
+        
         <Button variant="outline" size="sm" onClick={printReport} className="ml-auto gap-1 h-7 text-xs">
-          <Printer className="h-3.5 w-3.5" /> Print Report
+          <Printer className="h-3.5 w-3.5" /> Print
         </Button>
       </header>
 
       <div className="p-4 space-y-4 max-w-4xl mx-auto">
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg font-bold">Report for {new Date(selectedDate).toLocaleDateString()}</h2>
+          <span className="text-xs text-muted-foreground">Showing history from last 40 days</span>
+        </div>
+
         {tab === 'summary' && (
           <>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
               <div className="bg-card border border-border rounded-lg p-4">
                 <p className="text-xs text-muted-foreground">Total Orders</p>
-                <p className="text-2xl font-bold text-foreground">{completedToday.length}</p>
+                <p className="text-2xl font-bold">{completedOrders.length}</p>
               </div>
               <div className="bg-card border border-border rounded-lg p-4">
                 <p className="text-xs text-muted-foreground">Total Sales</p>
@@ -176,11 +171,11 @@ export default function ReportsPage() {
               </div>
               <div className="bg-card border border-border rounded-lg p-4">
                 <p className="text-xs text-muted-foreground">Cancelled</p>
-                <p className="text-2xl font-bold text-destructive">{cancelledToday.length}</p>
+                <p className="text-2xl font-bold text-destructive">{cancelledOrders.length}</p>
               </div>
               <div className="bg-card border border-border rounded-lg p-4">
                 <p className="text-xs text-muted-foreground">Avg Order</p>
-                <p className="text-2xl font-bold text-foreground">Rs.{completedToday.length ? Math.round(totalSales / completedToday.length) : 0}</p>
+                <p className="text-2xl font-bold">Rs.{completedOrders.length ? Math.round(totalSales / completedOrders.length) : 0}</p>
               </div>
             </div>
 
@@ -200,17 +195,23 @@ export default function ReportsPage() {
             </div>
 
             <div className="bg-card border border-border rounded-lg p-4">
-              <h2 className="text-sm font-bold mb-3">Today's Orders</h2>
-              <div className="space-y-1 max-h-96 overflow-y-auto">
-                {todayOrders.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()).map(order => (
-                  <div key={order.id} className="flex items-center justify-between text-xs py-1.5 border-b border-border">
-                    <span className="font-bold">{order.id}</span>
-                    <span className="capitalize text-muted-foreground">{order.orderType}</span>
-                    <span className={order.status === 'cancelled' ? 'text-destructive' : 'text-success'}>{order.status}</span>
-                    <span className="font-bold">Rs.{order.total}</span>
-                    <span className="text-muted-foreground">{new Date(order.createdAt).toLocaleTimeString()}</span>
-                  </div>
-                ))}
+              <h2 className="text-sm font-bold mb-3">Orders List</h2>
+              <div className="space-y-1 max-h-96 overflow-y-auto pr-1">
+                {filteredOrders.length === 0 ? (
+                  <p className="text-center text-muted-foreground py-4 text-xs">No orders for this date</p>
+                ) : (
+                  filteredOrders.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()).map(order => (
+                    <div key={order.id} className="flex items-center justify-between text-xs py-1.5 border-b border-border last:border-0">
+                      <div className="flex flex-col">
+                        <span className="font-bold">{order.id}</span>
+                        <span className="text-[10px] text-muted-foreground capitalize">{order.orderType}</span>
+                      </div>
+                      <span className={order.status === 'cancelled' ? 'text-destructive' : 'text-success'}>{order.status}</span>
+                      <span className="font-bold">Rs.{order.total}</span>
+                      <span className="text-muted-foreground">{new Date(order.createdAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
+                    </div>
+                  ))
+                )}
               </div>
             </div>
           </>
@@ -224,7 +225,7 @@ export default function ReportsPage() {
             </div>
 
             {filteredCategories.length === 0 ? (
-              <p className="text-center text-muted-foreground py-8">No sales data for today</p>
+              <p className="text-center text-muted-foreground py-8">No sales data for this date</p>
             ) : (
               <div className="space-y-3">
                 {filteredCategories.map(([cat, data]) => (
@@ -234,9 +235,6 @@ export default function ReportsPage() {
                       <div className="flex gap-3 text-xs items-center">
                         <span className="text-muted-foreground">{data.totalQty} items sold</span>
                         <span className="font-bold text-secondary">Rs.{data.totalRevenue}</span>
-                        <Button variant="ghost" size="sm" onClick={() => printCategory(cat, data)} className="h-6 w-6 p-0">
-                          <Printer className="h-3 w-3" />
-                        </Button>
                       </div>
                     </div>
                     <div className="space-y-1">

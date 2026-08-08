@@ -12,11 +12,12 @@ interface NumPadProps {
 }
 
 export function NumPad({ open, title = 'Enter value', initialValue = '', allowDecimal = true, onClose, onConfirm }: NumPadProps) {
-  const [value, setValue] = useState(String(initialValue ?? ''));
+  const [value, setValue] = useState('');
 
   useEffect(() => {
-    if (open) setValue(initialValue === 0 ? '' : String(initialValue ?? ''));
-  }, [open, initialValue]);
+    // Reset dialer quantity display whenever it opens
+    if (open) setValue('');
+  }, [open]);
 
   const press = (key: string) => {
     if (key === 'C') return setValue('');
@@ -55,7 +56,6 @@ export function NumPad({ open, title = 'Enter value', initialValue = '', allowDe
   );
 }
 
-/** Small keypad trigger button used next to numeric inputs. */
 export function NumPadButton({ onClick, className = '' }: { onClick: () => void; className?: string }) {
   return (
     <button type="button" onClick={onClick} title="Open dialer"

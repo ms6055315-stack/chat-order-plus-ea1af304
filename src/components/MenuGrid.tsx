@@ -118,7 +118,7 @@ function MenuGridBase({ items, categories, selectedCategory, onCategoryChange, o
       <NumPad
         open={!!qtyItem}
         title={`${qtyItem?.name || ''} — Quantity`}
-        initialValue={1}
+        initialValue={0}
         allowDecimal={false}
         onClose={() => setQtyItem(null)}
         onConfirm={n => {

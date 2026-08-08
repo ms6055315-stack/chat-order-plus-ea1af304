@@ -22,7 +22,7 @@ import { AIAgentPanel, AIAgentButton } from '@/components/AIAgentPanel';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
-import { Phone, BarChart3, ClipboardList, Sun, Moon, Plus, X, Clock, MessageSquare, User, Store } from 'lucide-react';
+import { Phone, BarChart3, ClipboardList, Sun, Moon, X, Clock, MessageSquare, User, Store } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import { loadPOSConfig } from '@/pages/POSSettings';
 import { buildTokenHtml, dispatchPrint } from '@/lib/printing';
@@ -30,7 +30,7 @@ import { buildTokenHtml, dispatchPrint } from '@/lib/printing';
 const Index = () => {
   const navigate = useNavigate();
   const cart = useCart();
-  const { isDayOpen, currentSession, startDay, endDay, addOrder, getTodayStats, clearNonSelfOrders, orders } = useOrders();
+  const { isDayOpen, currentSession, startDay, endDay, saveDraftOrder, getTodayStats, orders, purgeOldOrders } = useOrders();
   const menu = useMenuItems();
   const { customers, searchByPhone, saveCustomer, updateCustomer, deleteCustomer } = useCustomers();
   const staff = useStaffAndTables();
@@ -46,9 +46,6 @@ const Index = () => {
   const [openingCash, setOpeningCash] = useState('');
   const [closingCash, setClosingCash] = useState('');
   const [lastOrder, setLastOrder] = useState<Order | null>(null);
-  const [showTypeDialog, setShowTypeDialog] = useState(false);
-  const [typeChosen, setTypeChosen] = useState(false);
-  const [pendingItem, setPendingItem] = useState<{ item: MenuItem; quantity: number } | null>(null);
 
 
   const voice = useVoiceCommand({
@@ -92,13 +89,7 @@ const Index = () => {
 
   const handleItemClick = (item: MenuItem, quantity = 1) => {
     if (!isDayOpen) {
-      toast({ title: 'Day not started', description: 'Please start the day first!', variant: 'destructive' });
-      return;
-    }
-    // Fresh cart and no order type picked yet -> ask first, then add the item.
-    if (cart.items.length === 0 && !typeChosen) {
-      setPendingItem({ item, quantity });
-      setShowTypeDialog(true);
+      toast({ title: "Day not started", description: "Please start the day first!", variant: "destructive" });
       return;
     }
     addToCart(item, quantity);
@@ -107,36 +98,27 @@ const Index = () => {
 
 
 
-  // Reset after an order is closed — no popup here; the type is asked again as
-  // soon as the next item is picked.
   const resetAfterOrder = () => {
     cart.clearCart();
     setPaymentStatus('paid');
-    setTypeChosen(false);
-    setPendingItem(null);
-  };
-
-  const handleNewOrder = () => {
-    resetAfterOrder();
-    setLastOrder(null);
-    setShowTypeDialog(true);
   };
 
 
   const handlePhoneChange = (phone: string) => {
-    cart.setCustomerPhone(phone);
-    // If phone is cleared or shortened, clear related fields
-    if (phone.length < 7) {
-      if (phone.length < 4) {
-        cart.setCustomerName('');
-        cart.setCustomerAddress('');
-        cart.setDeliveryCharges(0);
-      }
+    const digits = phone.replace(/\D/g, '').slice(0, 11);
+    const changedSavedNumber = digits !== cart.customerPhone;
+    cart.setCustomerPhone(digits);
+    if (changedSavedNumber) {
+      cart.setCustomerName('');
+      cart.setCustomerAddress('');
+      cart.setDeliveryCharges(0);
+    }
+    if (digits.length < 4) {
       setPhoneSuggestions([]);
       setShowSuggestions(false);
       return;
     }
-    const matches = searchByPhone(phone);
+    const matches = searchByPhone(digits);
     if (matches.length > 0) {
       setPhoneSuggestions(matches);
       setShowSuggestions(true);
@@ -160,8 +142,8 @@ const Index = () => {
       toast({ title: 'Empty cart', description: 'Add items first', variant: 'destructive' });
       return;
     }
-    if (cart.orderType === 'delivery' && (!cart.customerPhone || !cart.customerAddress)) {
-      toast({ title: 'Missing info', description: 'Enter phone & address for delivery', variant: 'destructive' });
+    if (cart.orderType === 'delivery' && (cart.customerPhone.length !== 11 || !cart.customerAddress)) {
+      toast({ title: 'Missing info', description: 'Delivery requires exactly 11 phone digits and an address', variant: 'destructive' });
       return;
     }
     if (cart.orderType === 'dine-in' && !cart.tableNumber) {
@@ -192,11 +174,43 @@ const Index = () => {
       paymentStatus,
     };
 
-    const newOrder = addOrder(orderData);
+    const newOrder: Order = {
+      ...orderData,
+      id: cart.draftOrderId || `ORD-${Date.now().toString(36).toUpperCase()}`,
+      createdAt: orders.find(order => order.id === cart.draftOrderId)?.createdAt || new Date(),
+    };
+    saveDraftOrder(newOrder);
     setLastOrder(newOrder);
     toast({ title: 'Order placed!', description: `${newOrder.id} - Rs.${newOrder.total}` });
     resetAfterOrder();
   };
+
+  // An open cart is a live pending order. Every edit is saved immediately so
+  // closing the browser, losing power, or working offline cannot lose it.
+  useEffect(() => {
+    if (!cart.draftOrderId || cart.items.length === 0) return;
+    const previous = orders.find(order => order.id === cart.draftOrderId);
+    saveDraftOrder({
+      id: cart.draftOrderId,
+      items: cart.items,
+      orderType: cart.orderType as Order['orderType'],
+      tableNumber: cart.orderType === 'dine-in' ? cart.tableNumber || undefined : undefined,
+      customerName: cart.customerName || undefined,
+      customerPhone: cart.customerPhone || undefined,
+      customerAddress: cart.orderType === 'delivery' ? cart.customerAddress || undefined : undefined,
+      deliveryCharges: cart.orderType === 'delivery' ? cart.deliveryCharges : undefined,
+      riderName: cart.orderType === 'delivery' ? cart.riderName || undefined : undefined,
+      waiterName: cart.orderType === 'dine-in' ? cart.waiterName || undefined : undefined,
+      discount: cart.discount,
+      discountType: cart.discountType,
+      subtotal: cart.subtotal,
+      total: cart.total + (cart.orderType === 'delivery' ? cart.deliveryCharges : 0),
+      extraCharges: cart.extraCharges,
+      status: 'pending',
+      paymentStatus,
+      createdAt: previous?.createdAt || new Date(),
+    });
+  }, [cart.draftOrderId, cart.items, cart.orderType, cart.tableNumber, cart.customerName, cart.customerPhone, cart.customerAddress, cart.deliveryCharges, cart.riderName, cart.waiterName, cart.discount, cart.discountType, cart.subtotal, cart.total, cart.extraCharges, paymentStatus, orders, saveDraftOrder]);
 
   const handleStartDay = () => {
     const cash = parseFloat(openingCash);
@@ -211,10 +225,10 @@ const Index = () => {
     const cash = parseFloat(closingCash);
     if (isNaN(cash) || cash < 0) return;
     endDay(cash);
-    clearNonSelfOrders();
+    purgeOldOrders();
     setShowEndDayDialog(false);
     setClosingCash('');
-    toast({ title: 'Day ended!', description: 'All orders cleared (except Self-Service)' });
+    toast({ title: 'Day ended!', description: 'Day session closed. History retained for 40 days.' });
   };
 
   agent.setCallbacks({
@@ -233,7 +247,6 @@ const Index = () => {
     setDeliveryCharges: cart.setDeliveryCharges,
     setPaymentStatus: (s) => setPaymentStatus(s as any),
     closeOrder: handleCloseOrder,
-    newOrder: handleNewOrder,
     menuItems: menu.items,
     cartItems: cart.items,
     orderType: cart.orderType,
@@ -402,7 +415,7 @@ const Index = () => {
               <div className="space-y-1">
                 <Input placeholder="Customer Name" value={cart.customerName} onChange={e => cart.setCustomerName(e.target.value)} className="h-7 text-xs" />
                 <div className="relative" ref={phoneInputRef}>
-                  <Input placeholder="Phone" value={cart.customerPhone} onChange={e => handlePhoneChange(e.target.value)} className="h-7 text-xs" />
+                  <Input placeholder={cart.orderType === 'delivery' ? 'Phone (11 digits)' : 'Phone'} inputMode="numeric" maxLength={11} value={cart.customerPhone} onChange={e => handlePhoneChange(e.target.value)} className="h-7 text-xs" />
                   {showSuggestions && phoneSuggestions.length > 0 && (
                     <div className="absolute z-50 w-full mt-1 bg-popover border border-border rounded shadow-lg max-h-32 overflow-y-auto">
                       {phoneSuggestions.map((c, i) => (
@@ -438,10 +451,7 @@ const Index = () => {
             )}
 
             <div className="flex gap-1">
-              <Button variant="outline" onClick={handleNewOrder} className="flex-1 h-8 text-xs gap-1">
-                <Plus className="h-3 w-3" /> New
-              </Button>
-              <Button onClick={handleCloseOrder} disabled={cart.items.length === 0 || !isDayOpen} className="flex-1 h-8 text-xs gap-1">
+              <Button onClick={handleCloseOrder} disabled={cart.items.length === 0 || !isDayOpen} className="w-full h-8 text-xs gap-1">
                 <X className="h-3 w-3" /> Close Order
               </Button>
             </div>
@@ -455,34 +465,6 @@ const Index = () => {
       </main>
 
       {/* Dialogs */}
-      <Dialog open={showTypeDialog} onOpenChange={setShowTypeDialog}>
-        <DialogContent className="max-w-xs">
-          <DialogHeader><DialogTitle>Select Order Type</DialogTitle></DialogHeader>
-          <div className="grid grid-cols-2 gap-2 py-2">
-            {([
-              { value: 'dine-in', label: 'Dine In' },
-              { value: 'takeout', label: 'Take Out' },
-              { value: 'delivery', label: 'Delivery' },
-              { value: 'car', label: 'Car Order' },
-            ] as const).map(t => (
-              <Button key={t.value} variant="outline" className="h-14 text-sm"
-                onClick={() => {
-                  cart.setOrderType(t.value);
-                  setTypeChosen(true);
-                  setShowTypeDialog(false);
-                  if (pendingItem) {
-                    addToCart(pendingItem.item, pendingItem.quantity);
-                    setPendingItem(null);
-                  }
-                }}>
-
-                {t.label}
-              </Button>
-            ))}
-          </div>
-        </DialogContent>
-      </Dialog>
-
       <Dialog open={showStartDayDialog} onOpenChange={setShowStartDayDialog}>
         <DialogContent>
           <DialogHeader><DialogTitle>Start Day</DialogTitle></DialogHeader>

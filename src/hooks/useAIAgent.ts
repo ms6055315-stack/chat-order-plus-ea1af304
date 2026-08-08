@@ -23,7 +23,6 @@ interface AICallbacks {
   setDeliveryCharges: (c: number) => void;
   setPaymentStatus: (s: string) => void;
   closeOrder: () => void;
-  newOrder: () => void;
   menuItems: MenuItem[];
   cartItems: any[];
   orderType: string;
@@ -62,9 +61,9 @@ export function useAIAgent() {
       return `Added ${qty}x ${item.name} (Rs.${item.price}) to cart`;
     }
 
-    if (lower.includes('clear') || lower.includes('new order')) {
-      cb.newOrder();
-      return 'Cart cleared, new order started';
+    if (lower.includes('clear')) {
+      cb.clearCart();
+      return 'Cart cleared';
     }
 
     if (lower.includes('close order') || lower.includes('place order')) {

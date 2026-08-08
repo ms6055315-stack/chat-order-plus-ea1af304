@@ -4,7 +4,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ArrowLeft, Save, Image, Store } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
-import { SyncQRPanel } from '@/components/SyncQRPanel';
 
 const POS_SETTINGS_KEY = 'rabbani_pos_settings';
 
@@ -65,8 +64,6 @@ export default function POSSettingsPage() {
       </header>
 
       <div className="max-w-xl mx-auto p-6 space-y-6">
-        <SyncQRPanel />
-
         {/* Logo */}
         <div className="bg-card border border-border rounded-lg p-4 space-y-3">
           <h2 className="text-sm font-bold flex items-center gap-2"><Store className="h-4 w-4" /> Shop Branding</h2>

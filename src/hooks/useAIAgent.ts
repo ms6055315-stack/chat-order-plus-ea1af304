@@ -61,7 +61,7 @@ export function useAIAgent() {
       return `Added ${qty}x ${item.name} (Rs.${item.price}) to cart`;
     }
 
-    if (lower.includes('clear') || lower.includes('new order')) {
+    if (lower.includes('clear')) {
       cb.clearCart();
       return 'Cart cleared';
     }

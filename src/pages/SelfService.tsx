@@ -190,7 +190,7 @@ export default function SelfServicePage() {
         </Button>
         <h1 className="text-lg font-bold text-primary">Self Service</h1>
         <div className="flex gap-1 ml-4">
-          <Button variant={view === 'menu' ? 'default' : 'outline'} size="sm" onClick={() => setView('menu')} className="h-7 text-xs">New Order</Button>
+          <Button variant={view === 'menu' ? 'default' : 'outline'} size="sm" onClick={() => setView('menu')} className="h-7 text-xs">Menu</Button>
           <Button variant={view === 'orders' ? 'default' : 'outline'} size="sm" onClick={() => setView('orders')} className="h-7 text-xs">
             Orders ({getCount('pending')})
           </Button>

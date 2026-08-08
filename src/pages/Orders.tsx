@@ -25,6 +25,7 @@ const STATUS_TABS: { value: string; label: string }[] = [
 ];
 
 export default function OrdersPage() {
+  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split("T")[0]);
   const navigate = useNavigate();
   const { orders, updateOrderStatus, updateOrder, deleteOrder } = useOrders();
   const menu = useMenuItems();
@@ -40,11 +41,14 @@ export default function OrdersPage() {
   const [editCustomerAddress, setEditCustomerAddress] = useState('');
   const [editCustomerEmail, setEditCustomerEmail] = useState('');
 
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
+  const reportDate = new Date(selectedDate);
+  reportDate.setHours(0, 0, 0, 0);
+  const nextDate = new Date(reportDate);
+  nextDate.setDate(nextDate.getDate() + 1);
 
   const filteredOrders = orders.filter(o =>
-    new Date(o.createdAt) >= today &&
+    (new Date(o.createdAt) >= reportDate && new Date(o.createdAt) < nextDate) &&
+    new Date(o.createdAt) >= reportDate && new Date(o.createdAt) < nextDate &&
     o.orderType === activeTab &&
     o.orderType !== 'self' &&
     (statusTab === 'pending' ? !['completed', 'cancelled'].includes(o.status) : o.status === statusTab)
@@ -52,7 +56,7 @@ export default function OrdersPage() {
 
   const getCount = (type: Order['orderType'], status: string) =>
     orders.filter(o =>
-      new Date(o.createdAt) >= today &&
+      new Date(o.createdAt) >= reportDate && new Date(o.createdAt) < nextDate &&
       o.orderType === type &&
       o.orderType !== 'self' &&
       (status === 'pending' ? !['completed', 'cancelled'].includes(o.status) : o.status === status)
@@ -215,6 +219,9 @@ export default function OrdersPage() {
           <ArrowLeft className="h-3.5 w-3.5" /> Back
         </Button>
         <h1 className="text-lg font-bold text-primary">Orders Management</h1>
+        <div className="flex items-center gap-2 ml-4">
+          <Input type="date" value={selectedDate} onChange={(e) => setSelectedDate(e.target.value)} className="h-8 text-xs w-36" max={new Date().toISOString().split("T")[0]} />
+        </div>
 
         <div className="ml-auto flex gap-1 flex-wrap">
           <Button size="sm" variant="outline" onClick={handleDownloadAll} className="h-7 text-xs gap-1">

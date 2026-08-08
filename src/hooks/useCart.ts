@@ -6,6 +6,7 @@ import { useSyncRefresh } from '@/hooks/useSyncRefresh';
 const CART_STORAGE_KEY = 'rabbani_cart';
 
 interface CartState {
+  draftOrderId: string;
   items: CartItem[];
   discount: number;
   discountType: 'percent' | 'amount';
@@ -21,11 +22,12 @@ interface CartState {
 }
 
 function loadCart(): CartState {
+  const empty: CartState = { draftOrderId: '', items: [], discount: 0, discountType: 'percent', extraCharges: 0, orderType: 'dine-in', customerName: '', customerPhone: '', customerAddress: '', deliveryCharges: 0, tableNumber: '', riderName: '', waiterName: '' };
   try {
     const data = localStorage.getItem(CART_STORAGE_KEY);
-    if (!data) return { items: [], discount: 0, discountType: 'percent', extraCharges: 0, orderType: 'dine-in', customerName: '', customerPhone: '', customerAddress: '', deliveryCharges: 0, tableNumber: '', riderName: '', waiterName: '' };
-    return JSON.parse(data);
-  } catch { return { items: [], discount: 0, discountType: 'percent', extraCharges: 0, orderType: 'dine-in', customerName: '', customerPhone: '', customerAddress: '', deliveryCharges: 0, tableNumber: '', riderName: '', waiterName: '' }; }
+    if (!data) return empty;
+    return { ...empty, ...JSON.parse(data) };
+  } catch { return empty; }
 }
 
 function saveCartState(state: CartState) {
@@ -35,6 +37,7 @@ function saveCartState(state: CartState) {
 export function useCart() {
   const initial = loadCart();
   const skipSyncedSave = useRef(false);
+  const [draftOrderId, setDraftOrderId] = useState(initial.draftOrderId);
   const [items, setItems] = useState<CartItem[]>(initial.items);
   const [discount, setDiscount] = useState(initial.discount);
   const [discountType, setDiscountType] = useState<'percent' | 'amount'>(initial.discountType);
@@ -56,13 +59,14 @@ export function useCart() {
       skipSyncedSave.current = false;
       return;
     }
-    saveCartState({ items, discount, discountType, extraCharges, orderType, customerName, customerPhone, customerAddress, deliveryCharges, tableNumber, riderName, waiterName });
-  }, [items, discount, discountType, extraCharges, orderType, customerName, customerPhone, customerAddress, deliveryCharges, tableNumber, riderName, waiterName]);
+    saveCartState({ draftOrderId, items, discount, discountType, extraCharges, orderType, customerName, customerPhone, customerAddress, deliveryCharges, tableNumber, riderName, waiterName });
+  }, [draftOrderId, items, discount, discountType, extraCharges, orderType, customerName, customerPhone, customerAddress, deliveryCharges, tableNumber, riderName, waiterName]);
 
   // Live cart sync: another device changed the cart -> mirror it here.
   useSyncRefresh([CART_STORAGE_KEY], useCallback(() => {
     const s = loadCart();
     skipSyncedSave.current = true;
+    setDraftOrderId(s.draftOrderId);
     setItems(s.items);
     setDiscount(s.discount);
     setDiscountType(s.discountType);
@@ -79,6 +83,7 @@ export function useCart() {
 
 
   const addItem = useCallback((item: MenuItem) => {
+    setDraftOrderId(previous => previous || `ORD-${Date.now().toString(36).toUpperCase()}`);
     setItems(prev => {
       const existing = prev.find(i => i.id === item.id);
       if (existing) {
@@ -101,6 +106,7 @@ export function useCart() {
   }, []);
 
   const clearCart = useCallback(() => {
+    setDraftOrderId('');
     setItems([]);
     setDiscount(0);
     setDiscountType('percent');
@@ -120,6 +126,7 @@ export function useCart() {
   const total = Math.max(0, subtotal - discountAmount + extraCharges);
 
   return {
+    draftOrderId,
     items, addItem, removeItem, updateQuantity, clearCart,
     discount, discountType, setDiscount, setDiscountType,
     subtotal, discountAmount, total, extraCharges, setExtraCharges,

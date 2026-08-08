@@ -100,6 +100,17 @@ export function useOrders() {
     });
   }, []);
 
+  const saveDraftOrder = useCallback((order: Order) => {
+    setOrders(previous => {
+      const exists = previous.some(o => o.id === order.id);
+      const updated = exists
+        ? previous.map(o => o.id === order.id ? order : o)
+        : [...previous, order];
+      saveOrders(updated);
+      return updated;
+    });
+  }, []);
+
   const deleteOrder = useCallback((id: string) => {
     setOrders(previous => {
       const updated = previous.filter(o => o.id !== id);
@@ -144,5 +155,5 @@ export function useOrders() {
     };
   }, [orders]);
 
-  return { orders, isDayOpen, currentSession, startDay, endDay, addOrder, updateOrderStatus, updateOrder, deleteOrder, clearNonSelfOrders, getTodayStats };
+  return { orders, isDayOpen, currentSession, startDay, endDay, addOrder, saveDraftOrder, updateOrderStatus, updateOrder, deleteOrder, clearNonSelfOrders, getTodayStats };
 }

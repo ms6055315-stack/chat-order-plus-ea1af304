@@ -91,11 +91,9 @@ export function useOrders() {
   }, []);
 
   const updateOrder = useCallback((id: string, data: Partial<Order>) => {
-    setOrders(previous => {
-      const updated = previous.map(o => o.id === id ? { ...o, ...data } : o);
-      saveOrders(updated);
-      return updated;
-    });
+    const apply = (list: Order[]) => list.map(o => o.id === id ? { ...o, ...data } : o);
+    saveOrders(apply(loadOrders()));
+    setOrders(previous => apply(previous));
   }, []);
 
   const saveDraftOrder = useCallback((order: Order) => {
@@ -113,11 +111,9 @@ export function useOrders() {
   }, []);
 
   const deleteOrder = useCallback((id: string) => {
-    setOrders(previous => {
-      const updated = previous.filter(o => o.id !== id);
-      saveOrders(updated);
-      return updated;
-    });
+    const apply = (list: Order[]) => list.filter(o => o.id !== id);
+    saveOrders(apply(loadOrders()));
+    setOrders(previous => apply(previous));
   }, []);
 
   const purgeOldOrders = useCallback(() => {

@@ -25,7 +25,7 @@ const STATUS_TABS: { value: string; label: string }[] = [
 ];
 
 export default function OrdersPage() {
-  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split("T")[0]);
+  const [selectedDate, setSelectedDate] = useState(() => localDateKey());
   const navigate = useNavigate();
   const { orders, updateOrderStatus, updateOrder, deleteOrder } = useOrders();
   const menu = useMenuItems();
@@ -41,25 +41,27 @@ export default function OrdersPage() {
   const [editCustomerAddress, setEditCustomerAddress] = useState('');
   const [editCustomerEmail, setEditCustomerEmail] = useState('');
 
-  const reportDate = new Date(selectedDate);
-  reportDate.setHours(0, 0, 0, 0);
+  const reportDate = parseLocalDateKey(selectedDate);
   const nextDate = new Date(reportDate);
   nextDate.setDate(nextDate.getDate() + 1);
 
-  const filteredOrders = orders.filter(o =>
-    (new Date(o.createdAt) >= reportDate && new Date(o.createdAt) < nextDate) &&
-    o.orderType === activeTab &&
-    o.orderType !== 'self' &&
-    (statusTab === 'pending' ? !['completed', 'cancelled'].includes(o.status) : o.status === statusTab)
-  );
+  // Pending (open) orders are always shown regardless of date so nothing gets lost
+  // after midnight. Completed / cancelled orders are filtered by the selected day.
+  const matchesView = (o: Order, type: Order['orderType'], status: string) => {
+    if (o.orderType !== type || o.orderType === 'self') return false;
+    if (status === 'pending') return !['completed', 'cancelled'].includes(o.status);
+    const created = new Date(o.createdAt);
+    const finishedAt = o.completedAt ? new Date(o.completedAt) : created;
+    const inDay = (d: Date) => d >= reportDate && d < nextDate;
+    return o.status === status && (inDay(created) || inDay(finishedAt));
+  };
+
+  const filteredOrders = orders
+    .filter(o => matchesView(o, activeTab, statusTab))
+    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
   const getCount = (type: Order['orderType'], status: string) =>
-    orders.filter(o =>
-      new Date(o.createdAt) >= reportDate && new Date(o.createdAt) < nextDate &&
-      o.orderType === type &&
-      o.orderType !== 'self' &&
-      (status === 'pending' ? !['completed', 'cancelled'].includes(o.status) : o.status === status)
-    ).length;
+    orders.filter(o => matchesView(o, type, status)).length;
 
   const handleComplete = (id: string) => {
     updateOrderStatus(id, 'completed');
@@ -183,7 +185,16 @@ export default function OrdersPage() {
 
   // Pull an order back into the POS cart for editing, then remove it from the list.
   const handleEditInCart = (order: Order) => {
-    localStorage.setItem('rabbani_cart', JSON.stringify({
+    // Reopen the order (pending) directly in storage so it is saved before navigating.
+    try {
+      const raw = localStorage.getItem('rabbani_orders');
+      const list: Order[] = raw ? JSON.parse(raw) : [];
+      localStorage.setItem('rabbani_orders', JSON.stringify(
+        list.map(o => o.id === order.id ? { ...o, status: 'pending', completedAt: undefined } : o),
+      ));
+    } catch { /* keep going; cart still opens */ }
+    const cartKey = `rabbani_cart_${order.orderType}`;
+    localStorage.setItem(cartKey, JSON.stringify({
       draftOrderId: order.id,
       items: order.items,
       discount: order.discount || 0,
@@ -198,7 +209,7 @@ export default function OrdersPage() {
       riderName: order.riderName || '',
       waiterName: order.waiterName || '',
     }));
-    window.dispatchEvent(new CustomEvent('rabbani-sync-updated', { detail: 'rabbani_cart' }));
+    localStorage.setItem('rabbani_last_order_type', order.orderType);
     toast({ title: 'Order opened in cart', description: `${order.id} is now editable in the POS cart` });
     navigate('/');
   };

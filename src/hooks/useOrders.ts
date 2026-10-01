@@ -80,38 +80,40 @@ export function useOrders() {
   }, []);
 
   const updateOrderStatus = useCallback((id: string, status: Order['status']) => {
-    setOrders(previous => {
-      const updated = previous.map(o => o.id === id ? { ...o, status } : o);
-      saveOrders(updated);
-      return updated;
-    });
+    // Read the latest saved list so a status change is written immediately,
+    // even if the page is left right after clicking.
+    const finished = status === 'completed' || status === 'cancelled';
+    const apply = (list: Order[]) => list.map(o => o.id === id
+      ? { ...o, status, completedAt: finished ? new Date().toISOString() : undefined }
+      : o);
+    saveOrders(apply(loadOrders()));
+    setOrders(previous => apply(previous));
   }, []);
 
   const updateOrder = useCallback((id: string, data: Partial<Order>) => {
-    setOrders(previous => {
-      const updated = previous.map(o => o.id === id ? { ...o, ...data } : o);
-      saveOrders(updated);
-      return updated;
-    });
+    const apply = (list: Order[]) => list.map(o => o.id === id ? { ...o, ...data } : o);
+    saveOrders(apply(loadOrders()));
+    setOrders(previous => apply(previous));
   }, []);
 
   const saveDraftOrder = useCallback((order: Order) => {
-    setOrders(previous => {
-      const existing = previous.find(o => o.id === order.id);
-      if (existing && JSON.stringify(existing) === JSON.stringify(order)) return previous;
-      const exists = !!existing;
-      const updated = exists ? previous.map(o => o.id === order.id ? order : o) : [...previous, order];
-      saveOrders(updated);
-      return updated;
-    });
+    const upsert = (list: Order[]) => {
+      const existing = list.find(o => o.id === order.id);
+      if (existing && JSON.stringify(existing) === JSON.stringify(order)) return list;
+      return existing ? list.map(o => o.id === order.id ? order : o) : [...list, order];
+    };
+    // Write to storage immediately (not inside a deferred state update) so the
+    // order is never lost if the page changes or the app closes right after.
+    const stored = loadOrders();
+    const nextStored = upsert(stored);
+    if (nextStored !== stored) saveOrders(nextStored);
+    setOrders(previous => upsert(previous));
   }, []);
 
   const deleteOrder = useCallback((id: string) => {
-    setOrders(previous => {
-      const updated = previous.filter(o => o.id !== id);
-      saveOrders(updated);
-      return updated;
-    });
+    const apply = (list: Order[]) => list.filter(o => o.id !== id);
+    saveOrders(apply(loadOrders()));
+    setOrders(previous => apply(previous));
   }, []);
 
   const purgeOldOrders = useCallback(() => {

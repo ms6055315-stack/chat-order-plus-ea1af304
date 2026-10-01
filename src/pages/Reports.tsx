@@ -1,3 +1,4 @@
+import { localDateKey, parseLocalDateKey } from '@/lib/dates';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useOrders } from '@/hooks/useOrders';
@@ -11,12 +12,11 @@ export default function ReportsPage() {
   const { orders } = useOrders();
   const [categorySearch, setCategorySearch] = useState('');
   const [tab, setTab] = useState<'summary' | 'category'>('summary');
-  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
+  const [selectedDate, setSelectedDate] = useState(() => localDateKey());
   const posConfig = loadPOSConfig();
 
-  // Filter orders for the selected date
-  const reportDate = new Date(selectedDate);
-  reportDate.setHours(0, 0, 0, 0);
+  // Filter orders for the selected local calendar day
+  const reportDate = parseLocalDateKey(selectedDate);
   const nextDate = new Date(reportDate);
   nextDate.setDate(nextDate.getDate() + 1);
 
@@ -137,8 +137,8 @@ export default function ReportsPage() {
             value={selectedDate} 
             onChange={(e) => setSelectedDate(e.target.value)}
             className="h-8 text-xs w-36"
-            max={new Date().toISOString().split('T')[0]}
-            min={new Date(Date.now() - 39 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]}
+            max={localDateKey()}
+            min={localDateKey(new Date(Date.now() - 39 * 24 * 60 * 60 * 1000))}
           />
         </div>
 

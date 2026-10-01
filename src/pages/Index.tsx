@@ -190,6 +190,12 @@ const Index = () => {
   useEffect(() => {
     if (!cart.draftOrderId || cart.items.length === 0) return;
     const previous = orders.find(order => order.id === cart.draftOrderId);
+    // Order was completed/cancelled from Orders Management: never flip it back
+    // to pending — just start a fresh cart.
+    if (previous && (previous.status === 'completed' || previous.status === 'cancelled')) {
+      cart.clearCart();
+      return;
+    }
     saveDraftOrder({
       id: cart.draftOrderId,
       items: cart.items,

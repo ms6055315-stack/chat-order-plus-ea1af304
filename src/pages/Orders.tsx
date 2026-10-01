@@ -10,6 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogD
 import { Order, CartItem, MenuItem, CATEGORIES } from '@/lib/menu';
 import { ArrowLeft, Check, X, Truck, Coffee, Car, ShoppingBag, ShoppingCart, MessageCircle, Edit2, Minus, Plus, Search, Trash2, Download } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
+import { localDateKey, parseLocalDateKey } from '@/lib/dates';
 
 const ORDER_TABS: { value: Order['orderType']; label: string; icon: React.ReactNode }[] = [
   { value: 'dine-in', label: 'Dine In', icon: <Coffee className="h-3 w-3" /> },
@@ -230,7 +231,7 @@ export default function OrdersPage() {
         </Button>
         <h1 className="text-lg font-bold text-primary">Orders Management</h1>
         <div className="flex items-center gap-2 ml-4">
-          <Input type="date" value={selectedDate} onChange={(e) => setSelectedDate(e.target.value)} className="h-8 text-xs w-36" max={new Date().toISOString().split("T")[0]} />
+          <Input type="date" value={selectedDate} onChange={(e) => setSelectedDate(e.target.value || localDateKey())} className="h-8 text-xs w-36" max={localDateKey()} />
         </div>
 
         <div className="ml-auto flex gap-1 flex-wrap">

@@ -43,6 +43,8 @@ export interface Order {
   status: 'pending' | 'preparing' | 'ready' | 'completed' | 'cancelled';
   paymentStatus: 'paid' | 'pay-later';
   createdAt: Date;
+  /** When the order was marked completed/cancelled (ISO string or Date). */
+  completedAt?: Date | string;
 }
 
 export interface DaySession {

@@ -80,11 +80,14 @@ export function useOrders() {
   }, []);
 
   const updateOrderStatus = useCallback((id: string, status: Order['status']) => {
-    setOrders(previous => {
-      const updated = previous.map(o => o.id === id ? { ...o, status } : o);
-      saveOrders(updated);
-      return updated;
-    });
+    // Read the latest saved list so a status change is written immediately,
+    // even if the page is left right after clicking.
+    const finished = status === 'completed' || status === 'cancelled';
+    const apply = (list: Order[]) => list.map(o => o.id === id
+      ? { ...o, status, completedAt: finished ? new Date().toISOString() : undefined }
+      : o);
+    saveOrders(apply(loadOrders()));
+    setOrders(previous => apply(previous));
   }, []);
 
   const updateOrder = useCallback((id: string, data: Partial<Order>) => {

@@ -11,12 +11,11 @@ export default function ReportsPage() {
   const { orders } = useOrders();
   const [categorySearch, setCategorySearch] = useState('');
   const [tab, setTab] = useState<'summary' | 'category'>('summary');
-  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
+  const [selectedDate, setSelectedDate] = useState(() => localDateKey());
   const posConfig = loadPOSConfig();
 
-  // Filter orders for the selected date
-  const reportDate = new Date(selectedDate);
-  reportDate.setHours(0, 0, 0, 0);
+  // Filter orders for the selected local calendar day
+  const reportDate = parseLocalDateKey(selectedDate);
   const nextDate = new Date(reportDate);
   nextDate.setDate(nextDate.getDate() + 1);
 

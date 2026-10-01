@@ -1,3 +1,4 @@
+import { localDateKey, parseLocalDateKey } from '@/lib/dates';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useOrders } from '@/hooks/useOrders';
@@ -136,8 +137,8 @@ export default function ReportsPage() {
             value={selectedDate} 
             onChange={(e) => setSelectedDate(e.target.value)}
             className="h-8 text-xs w-36"
-            max={new Date().toISOString().split('T')[0]}
-            min={new Date(Date.now() - 39 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]}
+            max={localDateKey()}
+            min={localDateKey(new Date(Date.now() - 39 * 24 * 60 * 60 * 1000))}
           />
         </div>
 

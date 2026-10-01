@@ -99,14 +99,17 @@ export function useOrders() {
   }, []);
 
   const saveDraftOrder = useCallback((order: Order) => {
-    setOrders(previous => {
-      const existing = previous.find(o => o.id === order.id);
-      if (existing && JSON.stringify(existing) === JSON.stringify(order)) return previous;
-      const exists = !!existing;
-      const updated = exists ? previous.map(o => o.id === order.id ? order : o) : [...previous, order];
-      saveOrders(updated);
-      return updated;
-    });
+    const upsert = (list: Order[]) => {
+      const existing = list.find(o => o.id === order.id);
+      if (existing && JSON.stringify(existing) === JSON.stringify(order)) return list;
+      return existing ? list.map(o => o.id === order.id ? order : o) : [...list, order];
+    };
+    // Write to storage immediately (not inside a deferred state update) so the
+    // order is never lost if the page changes or the app closes right after.
+    const stored = loadOrders();
+    const nextStored = upsert(stored);
+    if (nextStored !== stored) saveOrders(nextStored);
+    setOrders(previous => upsert(previous));
   }, []);
 
   const deleteOrder = useCallback((id: string) => {

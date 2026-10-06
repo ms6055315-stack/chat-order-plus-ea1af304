@@ -48,6 +48,8 @@ export interface Order {
   /** Individual payment records (cash/online/card), linked to this order. */
   payments?: Payment[];
   notes?: string;
+  /** Automatic deal discount (Rs.) included in this order, separate from manual discount. */
+  dealDiscount?: number;
   source?: 'pos' | 'whatsapp' | 'online' | 'self' | 'ai';
   statusHistory?: { status: Order['status']; at: string }[];
 }

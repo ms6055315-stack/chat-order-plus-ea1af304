@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { MenuItem, CartItem } from '@/lib/menu';
 import { useSyncRefresh } from '@/hooks/useSyncRefresh';
+import { dealDiscountFor } from '@/lib/discounts';
 
 const CART_STORAGE_KEY_PREFIX = 'rabbani_cart_';
 
@@ -169,13 +170,15 @@ export function useCart() {
   }, [orderType]);
 
   const subtotal = items.reduce((sum, i) => sum + i.price * i.quantity, 0);
-  const discountAmount = discountType === 'percent' ? subtotal * discount / 100 : discount;
+  const manualDiscount = discountType === 'percent' ? subtotal * discount / 100 : discount;
+  const dealDiscount = Math.min(subtotal, dealDiscountFor(items));
+  const discountAmount = Math.round(manualDiscount + dealDiscount);
   const total = Math.max(0, subtotal - discountAmount + extraCharges);
 
   return {
     draftOrderId, items, addItem, removeItem, updateQuantity, clearCart,
     discount, discountType, setDiscount, setDiscountType,
-    subtotal, discountAmount, total, extraCharges, setExtraCharges,
+    subtotal, discountAmount, dealDiscount, total, extraCharges, setExtraCharges,
     orderType, setOrderType,
     customerName, setCustomerName,
     customerPhone, setCustomerPhone,

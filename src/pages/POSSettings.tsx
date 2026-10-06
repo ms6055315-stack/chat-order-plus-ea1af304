@@ -16,6 +16,8 @@ export interface POSConfig {
   currency: string;
   taxRate: number;
   receiptFooter: string;
+  /** Show Card as a payment method on the payment screen. */
+  cardEnabled?: boolean;
 }
 
 export function loadPOSConfig(): POSConfig {

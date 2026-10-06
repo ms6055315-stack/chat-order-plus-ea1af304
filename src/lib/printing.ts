@@ -3,8 +3,15 @@
 import { Order } from '@/lib/menu';
 import { loadPrintConfig, PrintConfig } from '@/components/PrintSettings';
 import { isPrintHost, sendRemotePrint, getSyncCode } from '@/lib/posSync';
+import { orderDiscountAmount, paidAmount, summarizePayments } from '@/lib/payments';
+
+let lastJob = { html: '', at: 0 };
 
 export function printHtml(html: string) {
+  // Same receipt sent twice within 3s = accidental double tap: print once.
+  const now = Date.now();
+  if (lastJob.html === html && now - lastJob.at < 3000) return;
+  lastJob = { html, at: now };
   const iframe = document.createElement('iframe');
   iframe.style.cssText = 'position:fixed;top:-10000px;left:-10000px;width:0;height:0;border:none;';
   document.body.appendChild(iframe);
@@ -75,11 +82,15 @@ ${order.customerAddress ? `<div>Address: ${order.customerAddress}</div>` : ''}
 </table>
 <div class="line"></div>
 <div class="right">Subtotal: Rs.${order.subtotal}</div>
-${order.discount > 0 ? `<div class="right">Discount: -Rs.${order.discountType === 'percent' ? Math.round(order.subtotal * order.discount / 100) : order.discount}</div>` : ''}
+${orderDiscountAmount(order) > 0 ? `<div class="right">Discount: -Rs.${orderDiscountAmount(order)}</div>` : ''}
 ${extraCharges > 0 ? `<div class="right">Extra Charges: Rs.${extraCharges}</div>` : ''}
 ${taxAmount > 0 ? `<div class="right">Tax (${c.billTaxPercent}%): Rs.${taxAmount}</div>` : ''}
 ${deliveryCharges > 0 ? `<div class="right">Delivery: Rs.${deliveryCharges}</div>` : ''}
 <div class="right total-line">Total: Rs.${order.total}</div>
+${summarizePayments(order).map(l => `<div class="right">${l}</div>`).join('')}
+${paidAmount(order) > 0 && paidAmount(order) < order.total ? `<div class="right bold">Remaining: Rs.${order.total - paidAmount(order)}</div>` : ''}
+${paidAmount(order) === 0 ? `<div class="right bold">UNPAID</div>` : ''}
+${order.notes ? `<div class="line"></div><div>Note: ${order.notes}</div>` : ''}
 <div class="line"></div>
 <div class="center">${c.billFooter}</div>
 </body></html>`;
@@ -110,7 +121,8 @@ export function buildTokenHtml(order: Order, c: PrintConfig = loadPrintConfig())
 <div class="center bold">${order.orderType.toUpperCase()}</div>
 ${order.tableNumber ? `<div class="center">Table: ${order.tableNumber}</div>` : ''}
 <div class="line"></div>
-${items.map(i => `<div class="item">${i.quantity}x ${i.name}</div>`).join('')}
+${items.map(i => `<div class="item">${i.quantity}x ${i.name}${i.note ? `<br/>&nbsp;&nbsp;- ${i.note}` : ''}</div>`).join('')}
+${order.notes ? `<div class="line"></div><div class="bold">Note: ${order.notes}</div>` : ''}
 <div class="line"></div>
 </body></html>`;
 }

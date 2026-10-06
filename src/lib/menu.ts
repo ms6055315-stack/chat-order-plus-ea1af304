@@ -16,12 +16,18 @@ export interface MenuItem {
   autoPrintToken?: boolean;
   /** When true, selecting this item opens the number pad to choose quantity. */
   askQuantity?: boolean;
+  /** Hidden from the POS menu when false. Defaults to available. */
+  available?: boolean;
+  description?: string;
+  image?: string;
+  sortOrder?: number;
 }
 
 
 
 export interface CartItem extends MenuItem {
   quantity: number;
+  note?: string;
 }
 
 export interface Order {
@@ -40,11 +46,27 @@ export interface Order {
   discountType: 'percent' | 'amount';
   subtotal: number;
   total: number;
-  status: 'pending' | 'preparing' | 'ready' | 'completed' | 'cancelled';
-  paymentStatus: 'paid' | 'pay-later';
+  status: 'pending' | 'confirmed' | 'preparing' | 'ready' | 'completed' | 'cancelled';
+  paymentStatus: 'paid' | 'pay-later' | 'partial';
   createdAt: Date;
   /** When the order was marked completed/cancelled (ISO string or Date). */
   completedAt?: Date | string;
+  /** Individual payment records (cash/online/card), linked to this order. */
+  payments?: Payment[];
+  notes?: string;
+  /** Automatic deal discount (Rs.) included in this order, separate from manual discount. */
+  dealDiscount?: number;
+  source?: 'pos' | 'whatsapp' | 'online' | 'self' | 'ai';
+  statusHistory?: { status: Order['status']; at: string }[];
+}
+
+export interface Payment {
+  id: string;
+  orderId: string;
+  method: 'cash' | 'online' | 'card';
+  amount: number;
+  at: string;
+  reference?: string;
 }
 
 export interface DaySession {

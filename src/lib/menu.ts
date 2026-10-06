@@ -40,11 +40,25 @@ export interface Order {
   discountType: 'percent' | 'amount';
   subtotal: number;
   total: number;
-  status: 'pending' | 'preparing' | 'ready' | 'completed' | 'cancelled';
-  paymentStatus: 'paid' | 'pay-later';
+  status: 'pending' | 'confirmed' | 'preparing' | 'ready' | 'completed' | 'cancelled';
+  paymentStatus: 'paid' | 'pay-later' | 'partial';
   createdAt: Date;
   /** When the order was marked completed/cancelled (ISO string or Date). */
   completedAt?: Date | string;
+  /** Individual payment records (cash/online/card), linked to this order. */
+  payments?: Payment[];
+  notes?: string;
+  source?: 'pos' | 'whatsapp' | 'online' | 'self' | 'ai';
+  statusHistory?: { status: Order['status']; at: string }[];
+}
+
+export interface Payment {
+  id: string;
+  orderId: string;
+  method: 'cash' | 'online' | 'card';
+  amount: number;
+  at: string;
+  reference?: string;
 }
 
 export interface DaySession {

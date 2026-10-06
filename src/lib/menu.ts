@@ -16,12 +16,18 @@ export interface MenuItem {
   autoPrintToken?: boolean;
   /** When true, selecting this item opens the number pad to choose quantity. */
   askQuantity?: boolean;
+  /** Hidden from the POS menu when false. Defaults to available. */
+  available?: boolean;
+  description?: string;
+  image?: string;
+  sortOrder?: number;
 }
 
 
 
 export interface CartItem extends MenuItem {
   quantity: number;
+  note?: string;
 }
 
 export interface Order {

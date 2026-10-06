@@ -35,3 +35,9 @@ export function summarizePayments(order: Order) {
   const m = byMethod([order]);
   return (Object.keys(m) as Payment['method'][]).filter(k => m[k] > 0).map(k => `${PAYMENT_LABEL[k]}: Rs.${m[k]}`);
 }
+
+/** Manual discount + automatic deal discount for display on bills/cards. */
+export function orderDiscountAmount(order: Order) {
+  const manual = order.discountType === 'percent' ? Math.round(order.subtotal * order.discount / 100) : order.discount;
+  return Math.round(manual + (order.dealDiscount || 0));
+}
